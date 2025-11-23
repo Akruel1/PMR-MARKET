@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AdCondition {
+  NEW
+  USED
+}
+
+enum Currency {
+  USD
+  EUR
+  RUB
+  MDL
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id                           String    @id @default(cuid())
+  name                         String?
+  email                        String    @unique
+  emailVerified                DateTime?
+  image                        String?
+  role                         UserRole  @default(USER)
+  banned                       Boolean   @default(false)
+  licenseAccepted              Boolean   @default(false)
+  licenseAcceptedAt            DateTime?
+  telegramChatId               String?
+  accountCode                  String?   @unique
+  telegramBotLicenseAccepted   Boolean   @default(false)
+  telegramBotLicenseAcceptedAt DateTime?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  ads                Ad[]
+  favorites          Favorite[]
+  views              View[]
+  messagesSent       Message[]    @relation("MessagesSent")
+  messagesReceived   Message[]    @relation("MessagesReceived")
+  reports            Report[]
+  userReportsFiled   UserReport[] @relation("UserReportsReporter")
+  userReportsAgainst UserReport[] @relation("UserReportsReported")
+  reviewsWritten     Review[]     @relation("ReviewsWritten")
+  reviewsReceived    Review[]     @relation("ReviewsReceived")
+  pushTokens         PushToken[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  ads      Ad[]
+}
+
+model City {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ads Ad[]
+}
+
+model Ad {
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  description  String
+  price        Decimal     @db.Decimal(10, 2)
+  currency     Currency    @default(USD)
+  condition    AdCondition @default(NEW)
+  status       AdStatus    @default(PENDING)
+  cityId       String
+  categoryId   String
+  userId       String
+  latitude     Float?
+  longitude    Float?
+  viewsCount   Int         @default(0)
+  isVip        Boolean     @default(false)
+  vipExpiresAt DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  city      City       @relation(fields: [cityId], references: [id])
+  category  Category   @relation(fields: [categoryId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images    Image[]
+  tags      AdTag[]
+  favorites Favorite[]
+  messages  Message[]
+  views     View[]
+  reports   Report[]
+  reviews   Review[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([cityId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([price])
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  adId      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  ad Ad @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@index([adId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  adTags AdTag[]
+
+  @@index([slug])
+}
+
+model AdTag {
+  id    String @id @default(cuid())
+  adId  String
+  tagId String
+
+  ad  Ad  @relation(fields: [adId], references: [id], onDelete: Cascade)
+  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, tagId])
+  @@index([adId])
+  @@index([tagId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  adId      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ad   Ad   @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, adId])
+  @@index([userId])
+  @@index([adId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  adId       String?
+  text       String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  fromUser User @relation("MessagesSent", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("MessagesReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  ad       Ad?  @relation(fields: [adId], references: [id], onDelete: SetNull)
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([adId])
+  @@index([createdAt])
+}
+
+model View {
+  id        String   @id @default(cuid())
+  adId      String
+  ip        String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  ad   Ad    @relation(fields: [adId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([adId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Report {
+  id        String       @id @default(cuid())
+  adId      String
+  userId    String
+  reason    String
+  status    ReportStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  ad   Ad   @relation(fields: [adId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([adId])
+  @@index([userId])
+  @@index([status])
+}
+
+model UserReport {
+  id             String       @id @default(cuid())
+  reportedUserId String
+  reporterId     String
+  reason         String
+  status         ReportStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  reportedUser User @relation("UserReportsReported", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reporter     User @relation("UserReportsReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reportedUserId])
+  @@index([reporterId])
+  @@index([status])
+}
+
+model Review {
+  id             String   @id @default(cuid())
+  adId           String
+  reviewerId     String
+  reviewedUserId String
+  adRating       Int
+  sellerRating   Int
+  comment        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  ad           Ad   @relation(fields: [adId], references: [id], onDelete: Cascade)
+  reviewer     User @relation("ReviewsWritten", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewedUser User @relation("ReviewsReceived", fields: [reviewedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, reviewerId])
+  @@index([adId])
+  @@index([reviewerId])
+  @@index([reviewedUserId])
+  @@index([createdAt])
+}
+
+model BroadcastTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String?
+  device    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
