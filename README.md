@@ -1,3 +1,7 @@
+### ⚙️ Tech Stack
+<div align="center">
+  <img src="https://skillicons.dev/icons?i=fastapi,js,postgresql,sqlite,git,docker,vscode&theme=light" />
+</div>
 # 🌐 Marketplace
 
 **Современное приложение-маркетплейс**, аналог Avito — построено на **Next.js 14+**, **TypeScript**, **Prisma** и **PostgreSQL**.  
