@@ -20,6 +20,24 @@ const schema = z.object({
   condition: z.enum(['NEW', 'USED']),
   categoryId: z.string().min(1),
   cityId: z.string().min(1),
+  expiresAt: z.preprocess(
+    (val) => (val === undefined || val === null || val === '' ? undefined : new Date(val as string)),
+    z.date().optional()
+  ),
+}).superRefine((data, ctx) => {
+  // This validation will be enhanced in the component to check category
+  // For now, just validate expiresAt if provided
+  if (data.expiresAt) {
+    const now = new Date();
+    const maxExpiry = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours
+    if (data.expiresAt <= now || data.expiresAt > maxExpiry) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Время размещения должно быть в будущем и не более чем через 48 часов',
+        path: ['expiresAt'],
+      });
+    }
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -68,6 +86,15 @@ export default function CreateAdPage() {
   });
 
   const watchedValues = watch();
+
+  // Check if selected category is "Отдых и события" or its child
+  const allCategories = categories.flatMap((p) => [p, ...(p.children || [])]);
+  const selectedCategory = allCategories.find((c) => c.id === watchedValues.categoryId);
+  const entertainmentParent = categories.find(p => p.slug === 'entertainment-events');
+  const isEntertainmentCategory = selectedCategory && entertainmentParent && 
+    (selectedCategory.slug === 'entertainment-events' || 
+     selectedCategory.parentId === entertainmentParent.id ||
+     entertainmentParent.children?.some(c => c.id === selectedCategory.id));
 
   useEffect(() => {
     async function loadInitialData() {
@@ -200,11 +227,38 @@ export default function CreateAdPage() {
       return;
     }
 
+    // Validate entertainment category requirements
+    if (isEntertainmentCategory) {
+      // Check if a subcategory is selected (not the parent)
+      if (!selectedCategory?.parentId) {
+        toast.error('Пожалуйста, выберите подкатегорию для категории "Отдых и события"');
+        return;
+      }
+      
+      // Check if expiresAt is provided
+      if (!values.expiresAt) {
+        toast.error('Для категории "Отдых и события" необходимо указать время размещения объявления');
+        return;
+      }
+
+      // Validate 48 hours limit
+      const now = new Date();
+      const maxExpiry = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+      if (values.expiresAt > maxExpiry) {
+        toast.error('Время размещения не может превышать 48 часов от текущего момента');
+        return;
+      }
+    }
+
     try {
       const res = await fetch('/api/ads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, imageUrls: images }),
+        body: JSON.stringify({ 
+          ...values, 
+          expiresAt: values.expiresAt ? values.expiresAt.toISOString() : undefined,
+          imageUrls: images 
+        }),
       });
 
       if (!res.ok) {
@@ -408,6 +462,7 @@ export default function CreateAdPage() {
                               type="button"
                               onClick={() => {
                                 if (parent.children && parent.children.length > 0) {
+                                  // Always expand to show children
                                   setExpandedCategory(parent.id);
                                 } else {
                                   setValue('categoryId', parent.id);
@@ -415,10 +470,10 @@ export default function CreateAdPage() {
                                 }
                               }}
                               className={`w-full px-4 py-3 text-left text-sm transition ${
-                                watchedValues.categoryId === parent.id
+                                watchedValues.categoryId === parent.id && !(parent.slug === 'entertainment-events')
                                   ? 'bg-primary-500/20 text-primary-300 font-semibold'
                                   : 'text-white hover:bg-dark-bg2'
-                              }`}
+                              } ${parent.slug === 'entertainment-events' ? 'opacity-90 cursor-pointer' : ''}`}
                             >
                               <div className="flex items-center justify-between">
                                 <span>{parent.name}</span>
@@ -460,8 +515,45 @@ export default function CreateAdPage() {
                 )}
               </div>
               {errors.categoryId && <p className="mt-1 text-sm text-red-400">{errors.categoryId.message}</p>}
+              {isEntertainmentCategory && (
+                <div className="mt-3 rounded-2xl border border-primary-500/30 bg-primary-500/5 p-4">
+                  <p className="text-sm text-primary-300 font-medium mb-2">
+                    ℹ️ Категория "Отдых и события"
+                  </p>
+                  <p className="text-sm text-neutral-400">
+                    Эта категория предназначена для размещения объявлений о местах отдыха, кафе и подобных заведениях, а также мероприятий для развлечения. В данной категории действуют особые правила: ограничение времени размещения до 48 часов и лимит 1 объявление в день. Для размещения большего количества объявлений доступна услуга VIP-уведомлений.
+                  </p>
+                  {selectedCategory && selectedCategory.parentId && (
+                    <p className="text-xs text-neutral-500 mt-2">
+                      Выбрана подкатегория: {selectedCategory.name}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+
+          {isEntertainmentCategory && (
+            <div>
+              <label className="block text-sm font-semibold text-white mb-2">
+                Время размещения объявления *
+              </label>
+              <input
+                type="datetime-local"
+                {...register('expiresAt', { 
+                  required: 'Укажите время размещения объявления',
+                  valueAsDate: true 
+                })}
+                min={new Date().toISOString().slice(0, 16)}
+                max={new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+                className="w-full rounded-2xl border border-neutral-800 bg-dark-bg px-4 py-3 text-white placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none"
+              />
+              {errors.expiresAt && <p className="mt-1 text-sm text-red-400">{errors.expiresAt.message}</p>}
+              <p className="mt-1 text-xs text-neutral-500">
+                Максимальное время размещения: 48 часов от текущего момента
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-semibold text-white mb-2">Фотографии *</label>

@@ -10,7 +10,8 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "ngrok": "npx ngrok http 3000"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

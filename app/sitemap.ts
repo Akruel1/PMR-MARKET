@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://pmrmarket.com';
 
   // Get all approved ads
   const ads = await prisma.ad.findMany({
@@ -94,6 +94,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [...staticRoutes, ...adRoutes, ...categoryRoutes, ...cityRoutes];
 }
+
+
+
 
 
 

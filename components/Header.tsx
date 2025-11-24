@@ -61,7 +61,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-dark-bg2/70 bg-[#080b12]/80 backdrop-blur-xl">
       <div className="container-custom flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 -ml-[120px]"> {/* Сдвиг влево на 3-4 см */}
           <Logo />
           <div className="flex items-center gap-2 md:hidden">
             <button

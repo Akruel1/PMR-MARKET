@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { sendTelegramMessage, sendTelegramMessageWithButtons, answerCallbackQuery } from '@/lib/telegram';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const BASE_URL = process.env.NEXTAUTH_URL || 'https://pmrmarket.com';
 
 interface TelegramUpdate {
   update_id: number;

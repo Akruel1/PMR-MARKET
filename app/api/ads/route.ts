@@ -23,6 +23,13 @@ const createAdSchema = z.object({
     z.number().optional()
   ),
   imageUrls: z.array(z.string().url()).min(1).max(10),
+  expiresAt: z.preprocess(
+    (value) => {
+      if (value === undefined || value === null || value === '') return undefined;
+      return new Date(value as string);
+    },
+    z.date().optional()
+  ),
 });
 
 function parseNumber(param: string | null): number | undefined {
@@ -104,6 +111,82 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please accept the user agreement before posting' }, { status: 403 });
     }
 
+    // Check if category is "Отдых и события" (entertainment-events)
+    const category = await prisma.category.findUnique({
+      where: { id: data.categoryId },
+      include: { parent: true },
+    });
+
+    if (!category) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    }
+
+    const isEntertainmentParent = category.slug === 'entertainment-events';
+    const isEntertainmentChild = category.parent?.slug === 'entertainment-events';
+    const isEntertainmentCategory = isEntertainmentParent || isEntertainmentChild;
+
+    // Validate entertainment category requirements
+    if (isEntertainmentCategory) {
+      // Check if subcategory is selected (must have parent, cannot select parent directly)
+      if (isEntertainmentParent || !category.parentId) {
+        return NextResponse.json({ 
+          error: 'Для категории "Отдых и события" необходимо выбрать подкатегорию' 
+        }, { status: 400 });
+      }
+
+      // Validate expiresAt is provided
+      if (!data.expiresAt) {
+        return NextResponse.json({ 
+          error: 'Для категории "Отдых и события" необходимо указать время размещения объявления' 
+        }, { status: 400 });
+      }
+
+      // Validate 48 hours limit
+      const now = new Date();
+      const maxExpiry = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+      if (data.expiresAt > maxExpiry) {
+        return NextResponse.json({ 
+          error: 'Время размещения не может превышать 48 часов от текущего момента' 
+        }, { status: 400 });
+      }
+
+      if (data.expiresAt <= now) {
+        return NextResponse.json({ 
+          error: 'Время размещения должно быть в будущем' 
+        }, { status: 400 });
+      }
+
+      // Check 1 ad per day limit (exclude VIP users)
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const entertainmentParent = category.parent?.slug === 'entertainment-events' 
+        ? category.parent 
+        : category;
+
+      const todayAdsCount = await prisma.ad.count({
+        where: {
+          userId: user.id,
+          createdAt: {
+            gte: todayStart,
+          },
+          category: {
+            OR: [
+              { id: entertainmentParent.id },
+              { parentId: entertainmentParent.id },
+            ],
+          },
+          isVip: false, // VIP users can post more
+        },
+      });
+
+      if (todayAdsCount >= 1) {
+        return NextResponse.json({ 
+          error: 'В категории "Отдых и события" разрешено размещать только 1 объявление в день. Для размещения большего количества объявлений используйте услугу VIP-уведомлений.' 
+        }, { status: 403 });
+      }
+    }
+
     // Create ad with temporary unique slug
     const tempSlug = `temp-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     
@@ -119,6 +202,7 @@ export async function POST(request: NextRequest) {
         categoryId: data.categoryId,
         latitude: data.latitude,
         longitude: data.longitude,
+        expiresAt: data.expiresAt,
         slug: tempSlug,
         userId: user.id,
         images: {

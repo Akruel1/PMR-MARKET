@@ -6,7 +6,7 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@marketplace.com';
-const BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const BASE_URL = process.env.NEXTAUTH_URL || 'https://pmrmarket.com';
 
 interface EmailData {
   to: string;
@@ -219,6 +219,9 @@ export async function sendAdRejectedEmail(
 
   return await sendEmail({ to: userEmail, subject, html, text });
 }
+
+
+
 
 
 

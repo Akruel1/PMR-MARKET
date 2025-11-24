@@ -45,7 +45,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-marketplace}:${POSTGRES_PASSWORD:-marketplace123}@postgres:5432/${POSTGRES_DB:-marketplace}
       REDIS_URL: redis://redis:6379
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://pmrmarket.com}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-secret-in-production}
     env_file:
       - .env

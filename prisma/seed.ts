@@ -63,6 +63,14 @@ async function main() {
     { name: 'Местные продукты', slug: 'local-produce' },
     { name: 'Услуги', slug: 'services' },
     { name: 'Авто и транспорт', slug: 'automotive' },
+    {
+      name: 'Отдых и события',
+      slug: 'entertainment-events',
+      children: [
+        { name: 'Кафе и подобные', slug: 'entertainment-cafe' },
+        { name: 'Культурное мероприятие', slug: 'entertainment-cultural' },
+      ],
+    },
   ];
 
   const categoryMap = new Map<string, string>();

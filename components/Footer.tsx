@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import FooterParticles from './FooterParticles';
 
 export default function Footer() {
@@ -66,34 +66,10 @@ export default function Footer() {
             <div className="space-y-3 text-sm text-neutral-400">
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary-400" />
-                <a href="mailto:info@pmrmarket.com" className="hover:text-white">
-                  info@pmrmarket.com
+                <a href="mailto:pmrmarket@proton.me" className="hover:text-white">
+                  pmrmarket@proton.me
                 </a>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-primary-400" />
-                <a href="tel:+123456789" className="hover:text-white">
-                  +1 (933) 125 267
-                </a>
-              </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 text-primary-400" />
-                <span>123 Market St, Tiraspol</span>
-              </div>
-            </div>
-            <div className="flex gap-3 text-neutral-400">
-              <a href="https://facebook.com" className="rounded-full border border-neutral-800 p-2 hover:text-white">
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a href="https://twitter.com" className="rounded-full border border-neutral-800 p-2 hover:text-white">
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a href="https://instagram.com" className="rounded-full border border-neutral-800 p-2 hover:text-white">
-                <Instagram className="h-4 w-4" />
-              </a>
-              <a href="https://linkedin.com" className="rounded-full border border-neutral-800 p-2 hover:text-white">
-                <Linkedin className="h-4 w-4" />
-              </a>
             </div>
           </div>
         </div>
