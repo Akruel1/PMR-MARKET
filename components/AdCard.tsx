@@ -124,7 +124,7 @@ export default function AdCard({ ad }: AdCardProps) {
             <h3 className="text-lg font-semibold text-white">{ad.title}</h3>
             <p className="text-sm text-neutral-400 line-clamp-2">{ad.description}</p>
           </div>
-          <span className="text-right text-lg font-bold text-white">{formatPrice(ad.price, ad.currency ?? 'USD')}</span>
+          <span className="text-right text-lg font-bold text-white">{formatPrice(Number(ad.price), ad.currency ?? 'USD')}</span>
         </div>
 
         <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-neutral-500">

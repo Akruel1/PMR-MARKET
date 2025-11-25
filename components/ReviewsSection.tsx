@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import StarRating from './StarRating';
 import { MessageSquare, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -34,11 +35,7 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
   const [submitting, setSubmitting] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [adId]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const res = await fetch(`/api/reviews?adId=${adId}`);
       const data = await res.json();
@@ -66,7 +63,11 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [adId, session?.user?.id]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,9 +221,11 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
                   title="Открыть профиль пользователя"
                 >
                   {review.reviewer.image ? (
-                    <img
+                    <Image
                       src={review.reviewer.image}
                       alt={review.reviewer.name || 'User'}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full object-cover cursor-pointer"
                     />
                   ) : (
