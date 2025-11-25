@@ -15,7 +15,7 @@ if (
   });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Upload to Cloudinary
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: 'image',
