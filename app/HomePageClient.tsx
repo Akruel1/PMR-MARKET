@@ -195,16 +195,17 @@ export default function HomePageClient({
         <FloatingParticles />
         <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 text-center lg:py-16">
           <p className="mx-auto flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-primary-200">
-            <Sparkles className="h-4 w-4 text-primary-300" />
+            <div className="w-6 h-6 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center">
+              <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
+            </div>
             PMR Market
           </p>
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold text-dark-text md:text-5xl">
-              Маркетплейс ПМР с живым поиском
+              PMR Market — найдёшь всё, что рядом
             </h1>
             <p className="mx-auto max-w-3xl text-lg text-dark-textSecondary">
-              Электроника, одежда, мебель, локальные продукты и услуги — всё рядом.
-              Настрой фильтры по городам и категориям, чтобы найти нужный товар за секунды.
+              Техника, одежда, мебель и услуги по всем городам ПМР. Пользуйся живым поиском и фильтрами, чтобы за пару секунд найти именно то, что нужно.
             </p>
           </div>
 
