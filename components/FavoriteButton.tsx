@@ -23,12 +23,6 @@ export default function FavoriteButton({
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (session?.user) {
-      checkFavorite();
-    }
-  }, [session, adId, checkFavorite]);
-
   const checkFavorite = useCallback(async () => {
     try {
       const response = await fetch(`/api/favorites/${adId}`);
@@ -40,6 +34,12 @@ export default function FavoriteButton({
       // Silent fail
     }
   }, [adId]);
+
+  useEffect(() => {
+    if (session?.user) {
+      checkFavorite();
+    }
+  }, [session, adId, checkFavorite]);
 
   const toggleFavorite = async () => {
     if (!session?.user) {
