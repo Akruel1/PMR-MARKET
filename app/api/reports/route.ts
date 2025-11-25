@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             data: {
               fromUserId: admin.id,
               toUserId: ad.userId,
-              content: `Ваше объявление "${ad.title}" было автоматически удалено из-за большого количества жалоб (${reportCount}). Причина: превышение лимита жалоб.`,
+              text: `Ваше объявление "${ad.title}" было автоматически удалено из-за большого количества жалоб (${reportCount}). Причина: превышение лимита жалоб.`,
               read: false,
             },
           });
