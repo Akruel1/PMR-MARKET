@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
+import { formatPrice } from '@/lib/utils';
 import ImageGallery from './ImageGallery';
 import FavoriteButton from '@/components/FavoriteButton';
 import SellerRating from '@/components/SellerRating';
@@ -102,22 +103,6 @@ export async function generateMetadata(
   };
 }
 
-function formatPrice(value?: number | null, currency: string = 'USD') {
-  if (value === null || value === undefined) {
-    return '—';
-  }
-
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 2,
-    }).format(Number(value));
-  } catch {
-    return `${value} ${currency}`;
-  }
-}
-
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
@@ -214,7 +199,7 @@ export default async function AdDetailsPage({ params }: PageProps) {
           <div className="rounded-[32px] border border-neutral-900 bg-[#0f1423] p-8 shadow-[0_20px_45px_rgba(0,0,0,0.45)] space-y-6">
             <div>
               <p className="text-[11px] uppercase tracking-[0.35em] text-neutral-500">Price</p>
-              <p className="text-4xl font-semibold text-white">{formatPrice(ad.price, ad.currency ?? 'USD')}</p>
+              <p className="text-4xl font-semibold text-white">{formatPrice(Number(ad.price), ad.currency ?? 'USD')}</p>
               <p className="text-sm text-neutral-500 mt-1">Secure payment via PMR Market</p>
             </div>
 
