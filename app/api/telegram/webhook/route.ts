@@ -80,7 +80,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bot token not configured' }, { status: 500 });
     }
 
-    const update: TelegramUpdate = await request.json();
+    // Get request body as text first to check if it's empty
+    const body = await request.text();
+    
+    if (!body || body.trim() === '') {
+      console.log('⚠️ Empty request body received');
+      return NextResponse.json({ ok: true, message: 'Empty body' });
+    }
+
+    let update: TelegramUpdate;
+    try {
+      update = JSON.parse(body);
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      console.error('Request body:', body);
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
 
     // Log update for debugging
     console.log('📱 Telegram update received:', {
@@ -540,5 +555,15 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Handle GET requests for webhook verification
+export async function GET() {
+  return NextResponse.json({ 
+    ok: true, 
+    message: 'Telegram webhook endpoint is working',
+    timestamp: new Date().toISOString(),
+    bot_token_configured: !!TELEGRAM_BOT_TOKEN
+  });
 }
 
