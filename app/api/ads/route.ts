@@ -268,7 +268,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         updatedAd.user?.email || 'Неизвестный email',
         updatedAd.category?.name || 'Неизвестная категория',
         updatedAd.city?.name || 'Неизвестный город',
-        updatedAd.price,
+        Number(updatedAd.price),
         updatedAd.currency
       );
     } catch (telegramError) {
