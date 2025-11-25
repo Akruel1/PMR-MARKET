@@ -5,22 +5,31 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
 import { searchAds } from '@/services/search.service';
+import { handleApiError, withErrorHandling } from '@/lib/error-handler';
+import { sanitizeInput, validateInputSecurity } from '@/lib/sanitize';
+import { sendAdModerationNotificationToAdmins } from '@/lib/telegram';
 
 const createAdSchema = z.object({
-  title: z.string().min(3).max(200),
-  description: z.string().min(10).max(5000),
-  price: z.preprocess((value) => Number(value), z.number().positive()),
+  title: z.string().min(3).max(200).refine(
+    (val) => validateInputSecurity(val).safe,
+    { message: 'Title contains unsafe content' }
+  ),
+  description: z.string().min(10).max(5000).refine(
+    (val) => validateInputSecurity(val).safe,
+    { message: 'Description contains unsafe content' }
+  ),
+  price: z.preprocess((value) => Number(value), z.number().positive().max(1000000)),
   currency: z.nativeEnum(Currency),
   condition: z.nativeEnum(AdCondition),
-  cityId: z.string().min(1),
-  categoryId: z.string().min(1),
+  cityId: z.string().min(1).max(50),
+  categoryId: z.string().min(1).max(50),
   latitude: z.preprocess(
     (value) => (value === undefined || value === null || value === '' ? undefined : Number(value)),
-    z.number().optional()
+    z.number().min(-90).max(90).optional()
   ),
   longitude: z.preprocess(
     (value) => (value === undefined || value === null || value === '' ? undefined : Number(value)),
-    z.number().optional()
+    z.number().min(-180).max(180).optional()
   ),
   imageUrls: z.array(z.string().url()).min(1).max(10),
   expiresAt: z.preprocess(
@@ -87,12 +96,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const user = await requireAuth();
-    const body = await request.json();
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const user = await requireAuth();
+  const body = await request.json();
 
-    const data = createAdSchema.parse(body);
+  // Дополнительная проверка размера тела запроса
+  const bodyString = JSON.stringify(body);
+  if (bodyString.length > 50000) { // 50KB лимит
+    throw new Error('Request body too large');
+  }
+
+  const data = createAdSchema.parse(body);
+  
+  // Санитизация данных
+  data.title = sanitizeInput(data.title);
+  data.description = sanitizeInput(data.description);
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -182,7 +200,7 @@ export async function POST(request: NextRequest) {
 
       if (todayAdsCount >= 1) {
         return NextResponse.json({ 
-          error: 'В категории "Отдых и события" разрешено размещать только 1 объявление в день. Для размещения большего количества объявлений используйте услугу VIP-уведомлений.' 
+          error: 'В категории "Отдых и события" разрешено размещать только 1 объявление в день. Для размещения большего количества объявлений свяжитесь с нами: @pmrmarketsupport или pmrmarket@proton.me' 
         }, { status: 403 });
       }
     }
@@ -230,8 +248,32 @@ export async function POST(request: NextRequest) {
         images: { orderBy: { order: 'asc' } },
         category: true,
         city: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
+
+    // Send notification to admins about new ad for moderation
+    try {
+      await sendAdModerationNotificationToAdmins(
+        updatedAd.id,
+        updatedAd.title,
+        updatedAd.user?.name || 'Неизвестный пользователь',
+        updatedAd.user?.email || 'Неизвестный email',
+        updatedAd.category?.name || 'Неизвестная категория',
+        updatedAd.city?.name || 'Неизвестный город',
+        updatedAd.price,
+        updatedAd.currency
+      );
+    } catch (telegramError) {
+      // Don't fail the ad creation if telegram notification fails
+      console.error('Failed to send admin notification:', telegramError);
+    }
 
     return NextResponse.json(updatedAd, { status: 201 });
   } catch (error) {

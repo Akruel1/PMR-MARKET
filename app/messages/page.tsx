@@ -293,14 +293,20 @@ export default function MessagesPage() {
                   <div className="flex items-center space-x-3">
                     {conv.otherUser.image ? (
                       <div className="relative">
-                        <Image
-                          src={conv.otherUser.image}
-                          alt={conv.otherUser.name || 'User'}
-                          width={48}
-                          height={48}
-                          className="rounded-full object-cover"
-                          unoptimized={conv.otherUser.image?.includes('googleusercontent.com')}
-                        />
+                        <a 
+                          href={`/profile?userId=${conv.otherUser.id}`}
+                          className="block hover:opacity-80 transition-opacity"
+                          title="Открыть профиль пользователя"
+                        >
+                          <Image
+                            src={conv.otherUser.image}
+                            alt={conv.otherUser.name || 'User'}
+                            width={48}
+                            height={48}
+                            className="rounded-full object-cover cursor-pointer"
+                            unoptimized={conv.otherUser.image?.includes('googleusercontent.com')}
+                          />
+                        </a>
                         {conv.unreadCount > 0 && (
                           <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
                             {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
@@ -396,20 +402,26 @@ export default function MessagesPage() {
                         >
                           {showAvatar && (
                             <div className="flex-shrink-0">
-                              {msg.fromUser.image ? (
-                                <Image
-                                  src={msg.fromUser.image}
-                                  alt={msg.fromUser.name || 'User'}
-                                  width={32}
-                                  height={32}
-                                  className="rounded-full object-cover"
-                                  unoptimized={msg.fromUser.image?.includes('googleusercontent.com')}
-                                />
-                              ) : (
-                                <div className="w-8 h-8 bg-gradient-to-br from-primary-500/20 to-primary-600/20 rounded-full flex items-center justify-center border border-primary-500/30">
-                                  <User className="h-4 w-4 text-primary-300" />
-                                </div>
-                              )}
+                              <a 
+                                href={`/profile?userId=${msg.fromUser.id}`}
+                                className="block hover:opacity-80 transition-opacity"
+                                title="Открыть профиль пользователя"
+                              >
+                                {msg.fromUser.image ? (
+                                  <Image
+                                    src={msg.fromUser.image}
+                                    alt={msg.fromUser.name || 'User'}
+                                    width={32}
+                                    height={32}
+                                    className="rounded-full object-cover cursor-pointer"
+                                    unoptimized={msg.fromUser.image?.includes('googleusercontent.com')}
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500/20 to-primary-600/20 rounded-full flex items-center justify-center border border-primary-500/30 cursor-pointer">
+                                    <User className="h-4 w-4 text-primary-300" />
+                                  </div>
+                                )}
+                              </a>
                             </div>
                           )}
                           <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[70%]`}>

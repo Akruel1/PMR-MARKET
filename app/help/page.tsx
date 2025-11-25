@@ -94,12 +94,22 @@ export default function HelpPage() {
                 <p className="text-dark-text leading-relaxed mb-2">
                   Если вы не нашли нужную информацию — напишите нам в поддержку, и мы обязательно поможем.
                 </p>
-                <a 
-                  href="mailto:support@pmrmarket.com" 
-                  className="text-primary-500 hover:text-primary-400 transition-colors duration-300 font-semibold"
-                >
-                  Служба поддержки: support@pmrmarket.com
-                </a>
+                <div className="space-y-2">
+                  <a 
+                    href="mailto:pmrmarket@proton.me" 
+                    className="text-primary-500 hover:text-primary-400 transition-colors duration-300 font-semibold block"
+                  >
+                    Email: pmrmarket@proton.me
+                  </a>
+                  <a 
+                    href="https://t.me/pmrmarketsupport" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary-500 hover:text-secondary-400 transition-colors duration-300 font-semibold block"
+                  >
+                    Telegram: @pmrmarketsupport
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -108,6 +118,8 @@ export default function HelpPage() {
     </div>
   );
 }
+
+
 
 
 

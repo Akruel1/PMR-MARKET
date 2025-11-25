@@ -77,24 +77,31 @@ export async function searchAds(
     };
   }
 
-  // Full-text search using raw SQL for PostgreSQL tsvector
+  // Full-text search with security validation
   if (search && search.trim()) {
-    // Use ILIKE for simple search (works without tsvector)
-    // For production, you can switch to tsvector for better performance
-    where.OR = [
-      {
-        title: {
-          contains: search,
-          mode: 'insensitive',
+    const { validateInputSecurity } = await import('../lib/sanitize');
+    const security = validateInputSecurity(search);
+    
+    if (security.safe && search.length <= 200) {
+      // Use ILIKE for simple search (works without tsvector)
+      // For production, you can switch to tsvector for better performance
+      where.OR = [
+        {
+          title: {
+            contains: search.trim(),
+            mode: 'insensitive',
+          },
         },
-      },
-      {
-        description: {
-          contains: search,
-          mode: 'insensitive',
+        {
+          description: {
+            contains: search.trim(),
+            mode: 'insensitive',
+          },
         },
-      },
-    ];
+      ];
+    } else {
+      console.warn('Unsafe search query blocked:', security.threats);
+    }
   }
 
   // Order by

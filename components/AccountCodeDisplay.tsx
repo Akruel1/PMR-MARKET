@@ -31,7 +31,7 @@ export default function AccountCodeDisplay({ accountCode }: AccountCodeDisplayPr
         <div className="group relative">
           <HelpCircle className="h-4 w-4 text-neutral-500 cursor-help" />
           <div className="absolute right-0 top-6 w-64 p-2 bg-dark-bg border border-neutral-700 rounded-lg text-xs text-dark-textSecondary opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-            Используйте этот код для связи вашего Telegram аккаунта с ботом @PMR_MARKET_BOT. Код виден только вам.
+Используйте этот код для связи вашего Telegram аккаунта с ботом. Код виден только вам.
           </div>
         </div>
       </div>
@@ -57,12 +57,14 @@ export default function AccountCodeDisplay({ accountCode }: AccountCodeDisplayPr
 
       <div className="text-sm text-neutral-500 space-y-1">
         <p>• Этот код нужен для подключения Telegram бота</p>
-        <p>• Откройте бота <Link href="https://t.me/PMR_MARKET_BOT" target="_blank" className="text-primary-500 hover:underline">@PMR_MARKET_BOT</Link> и отправьте этот код</p>
+        <p>• Обратитесь к поддержке <Link href="https://t.me/pmrmarketsupport" target="_blank" className="text-primary-500 hover:underline">@pmrmarketsupport</Link> для подключения Telegram</p>
         <p>• После подключения вы будете получать уведомления о новых сообщениях и объявлениях</p>
       </div>
     </div>
   );
 }
+
+
 
 
 

@@ -175,10 +175,10 @@ export default function AboutPage() {
                     Email
                   </h3>
                   <a 
-                    href="mailto:support@pmrmarket.com" 
+                    href="mailto:pmrmarket@proton.me" 
                     className="text-primary-500 hover:text-primary-400 transition-colors duration-300"
                   >
-                    support@pmrmarket.com
+                    pmrmarket@proton.me
                   </a>
                 </div>
               </div>
@@ -192,12 +192,12 @@ export default function AboutPage() {
                     Telegram
                   </h3>
                   <a 
-                    href="https://t.me/pmrmarket_support" 
+                    href="https://t.me/pmrmarketsupport" 
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-secondary-500 hover:text-secondary-400 transition-colors duration-300"
                   >
-                    @pmrmarket_support
+                    @pmrmarketsupport
                   </a>
                 </div>
               </div>
@@ -219,6 +219,8 @@ export default function AboutPage() {
     </div>
   );
 }
+
+
 
 
 

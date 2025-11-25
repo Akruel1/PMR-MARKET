@@ -190,6 +190,146 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
+      // Check if user is admin for moderation actions
+      const adminUser = await prisma.user.findFirst({
+        where: {
+          telegramChatId: chatId,
+          role: 'ADMIN',
+        },
+        select: { id: true, role: true },
+      });
+
+      // Handle ad approval (admin only)
+      if (callbackData?.startsWith('approve_ad_')) {
+        if (!adminUser) {
+          await answerCallbackQuery(callbackQueryId, 'У вас нет прав для выполнения этого действия', true);
+          return NextResponse.json({ ok: true });
+        }
+
+        const adId = callbackData.replace('approve_ad_', '');
+        
+        try {
+          const ad = await prisma.ad.findUnique({
+            where: { id: adId },
+            include: {
+              user: { select: { name: true, telegramChatId: true } },
+            },
+          });
+
+          if (!ad) {
+            await answerCallbackQuery(callbackQueryId, 'Объявление не найдено', true);
+            return NextResponse.json({ ok: true });
+          }
+
+          if (ad.status !== 'PENDING') {
+            await answerCallbackQuery(callbackQueryId, 'Объявление уже обработано', true);
+            return NextResponse.json({ ok: true });
+          }
+
+          // Approve the ad
+          await prisma.ad.update({
+            where: { id: adId },
+            data: { status: 'APPROVED' },
+          });
+
+          // Notify admin
+          await answerCallbackQuery(callbackQueryId, '✅ Объявление одобрено!');
+          
+          // Send confirmation message
+          await sendTelegramMessage(
+            chatId,
+            `✅ <b>Объявление одобрено</b>\n\n📝 "${ad.title}"\n👤 Автор: ${ad.user?.name || 'Неизвестный'}\n\n<a href="${BASE_URL}/ads/${ad.slug}">Посмотреть объявление</a>`
+          );
+
+          // Notify user if they have telegram
+          if (ad.user?.telegramChatId) {
+            await sendTelegramMessage(
+              ad.user.telegramChatId,
+              `🎉 <b>Объявление одобрено!</b>\n\nВаше объявление "${ad.title}" было одобрено и опубликовано.\n\n<a href="${BASE_URL}/ads/${ad.slug}">Посмотреть объявление</a>`
+            );
+          }
+
+        } catch (error) {
+          console.error('Error approving ad:', error);
+          await answerCallbackQuery(callbackQueryId, 'Ошибка при одобрении объявления', true);
+        }
+        return NextResponse.json({ ok: true });
+      }
+
+      // Handle ad rejection (admin only)
+      if (callbackData?.startsWith('reject_ad_')) {
+        if (!adminUser) {
+          await answerCallbackQuery(callbackQueryId, 'У вас нет прав для выполнения этого действия', true);
+          return NextResponse.json({ ok: true });
+        }
+
+        const adId = callbackData.replace('reject_ad_', '');
+        
+        try {
+          const ad = await prisma.ad.findUnique({
+            where: { id: adId },
+            include: {
+              user: { select: { name: true, telegramChatId: true } },
+            },
+          });
+
+          if (!ad) {
+            await answerCallbackQuery(callbackQueryId, 'Объявление не найдено', true);
+            return NextResponse.json({ ok: true });
+          }
+
+          if (ad.status !== 'PENDING') {
+            await answerCallbackQuery(callbackQueryId, 'Объявление уже обработано', true);
+            return NextResponse.json({ ok: true });
+          }
+
+          // Reject the ad
+          await prisma.ad.update({
+            where: { id: adId },
+            data: { status: 'REJECTED' },
+          });
+
+          // Notify admin
+          await answerCallbackQuery(callbackQueryId, '❌ Объявление отклонено');
+          
+          // Send confirmation message
+          await sendTelegramMessage(
+            chatId,
+            `❌ <b>Объявление отклонено</b>\n\n📝 "${ad.title}"\n👤 Автор: ${ad.user?.name || 'Неизвестный'}\n\n<a href="${BASE_URL}/admin/ads/${ad.id}">Подробности в админ-панели</a>`
+          );
+
+          // Notify user if they have telegram
+          if (ad.user?.telegramChatId) {
+            await sendTelegramMessage(
+              ad.user.telegramChatId,
+              `⚠️ <b>Объявление отклонено</b>\n\nВаше объявление "${ad.title}" было отклонено модератором.\n\nПроверьте ваш профиль для получения дополнительной информации.\n\n<a href="${BASE_URL}/profile">Мой профиль</a>`
+            );
+          }
+
+        } catch (error) {
+          console.error('Error rejecting ad:', error);
+          await answerCallbackQuery(callbackQueryId, 'Ошибка при отклонении объявления', true);
+        }
+        return NextResponse.json({ ok: true });
+      }
+
+      // Handle view user profile (admin only)
+      if (callbackData?.startsWith('view_user_')) {
+        if (!adminUser) {
+          await answerCallbackQuery(callbackQueryId, 'У вас нет прав для выполнения этого действия', true);
+          return NextResponse.json({ ok: true });
+        }
+
+        const userEmail = callbackData.replace('view_user_', '');
+        await answerCallbackQuery(callbackQueryId, 'Открываю профиль пользователя...');
+        
+        await sendTelegramMessage(
+          chatId,
+          `👤 <b>Профиль пользователя</b>\n\n📧 Email: ${userEmail}\n\n<a href="${BASE_URL}/profile?userId=${userEmail}">Открыть профиль</a>`
+        );
+        return NextResponse.json({ ok: true });
+      }
+
       // Unknown callback data
       await answerCallbackQuery(callbackQueryId, '❓ Неизвестная команда');
       return NextResponse.json({ ok: true });

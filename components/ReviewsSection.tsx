@@ -214,21 +214,31 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
               className="rounded-2xl border border-neutral-900 bg-[#0b101c] p-5 space-y-3"
             >
               <div className="flex items-start gap-3">
-                {review.reviewer.image ? (
-                  <img
-                    src={review.reviewer.image}
-                    alt={review.reviewer.name || 'User'}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-300 font-semibold border border-primary-500/30">
-                    {(review.reviewer.name || 'U')[0].toUpperCase()}
-                  </div>
-                )}
+                <a 
+                  href={`/profile?userId=${review.reviewer.id}`}
+                  className="block hover:opacity-80 transition-opacity"
+                  title="Открыть профиль пользователя"
+                >
+                  {review.reviewer.image ? (
+                    <img
+                      src={review.reviewer.image}
+                      alt={review.reviewer.name || 'User'}
+                      className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-300 font-semibold border border-primary-500/30 cursor-pointer">
+                      {(review.reviewer.name || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                </a>
                 <div className="flex-1">
-                  <p className="font-semibold text-white">
+                  <a 
+                    href={`/profile?userId=${review.reviewer.id}`}
+                    className="font-semibold text-white hover:text-primary-400 transition-colors cursor-pointer"
+                    title="Открыть профиль пользователя"
+                  >
                     {review.reviewer.name || 'Анонимный пользователь'}
-                  </p>
+                  </a>
                   <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mt-1">
                     {new Date(review.createdAt).toLocaleDateString('ru-RU', {
                       day: 'numeric',

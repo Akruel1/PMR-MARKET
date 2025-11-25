@@ -108,10 +108,10 @@ export default function SignInPage() {
               <p className="font-semibold text-white">Нужна помощь?</p>
               <p>
                 Напишите в{' '}
-                <Link href="https://t.me/PMR_MARKET_BOT" className="text-primary-300 hover:text-white">
-                  Telegram-бот
+                <Link href="https://t.me/pmrmarketsupport" className="text-primary-300 hover:text-white">
+                  Telegram: @pmrmarketsupport
                 </Link>{' '}
-                или на email info@pmrmarket.com, и мы включим ваш аккаунт вручную.
+                или на email pmrmarket@proton.me, и мы включим ваш аккаунт вручную.
               </p>
             </div>
           </div>

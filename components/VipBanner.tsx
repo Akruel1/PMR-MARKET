@@ -180,19 +180,30 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                 <div className="bg-primary-900/20 border border-primary-500/30 rounded-xl p-4">
                   <h3 className="text-lg font-semibold text-primary-400 mb-2">Как оформить:</h3>
                   <p className="mb-3">
-                    Свяжитесь с нами в Telegram для оформления VIP-статуса:
+                    Свяжитесь с нами для оформления VIP-статуса:
                   </p>
-                  <a
-                    href="https://t.me/PMR_MARKET_BOT"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-3 text-white font-semibold hover:bg-primary-600 transition"
-                  >
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.174 1.858-.924 6.33-1.304 8.392-.17.94-.504 1.254-.827 1.285-.699.062-1.229-.461-1.906-.903-1.056-.691-1.653-1.12-2.678-1.794-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559.099.014.19.064.263.157.09.117.123.274.09.431z"/>
-                    </svg>
-                    Открыть Telegram-бота
-                  </a>
+                  <div className="space-y-3">
+                    <a
+                      href="https://t.me/pmrmarketsupport"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-3 text-white font-semibold hover:bg-primary-600 transition w-full justify-center"
+                    >
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.174 1.858-.924 6.33-1.304 8.392-.17.94-.504 1.254-.827 1.285-.699.062-1.229-.461-1.906-.903-1.056-.691-1.653-1.12-2.678-1.794-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559.099.014.19.064.263.157.09.117.123.274.09.431z"/>
+                      </svg>
+                      Telegram: @pmrmarketsupport
+                    </a>
+                    <a
+                      href="mailto:pmrmarket@proton.me"
+                      className="inline-flex items-center gap-2 rounded-xl bg-secondary-500 px-6 py-3 text-white font-semibold hover:bg-secondary-600 transition w-full justify-center"
+                    >
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                      </svg>
+                      Email: pmrmarket@proton.me
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

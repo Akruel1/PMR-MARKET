@@ -7,6 +7,7 @@ import SessionProvider from '@/components/providers/SessionProvider';
 import { LocaleProvider } from '@/contexts/LocaleContext';
 import { Toaster } from 'react-hot-toast';
 import LicenseSync from '@/components/LicenseSync';
+import CSRFToken from '@/components/CSRFToken';
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-dark-bg text-dark-text">
         <SessionProvider>
           <LocaleProvider>
+            <CSRFToken />
             <LicenseSync />
             <div className="flex min-h-screen flex-col">
               <Header />
