@@ -23,10 +23,10 @@ const adSelect = {
   slug: true,
   images: {
     select: { url: true },
-    orderBy: { order: 'asc' },
+    orderBy: { order: 'asc' as const },
     take: 1,
   },
-};
+} as const;
 
 export async function GET(request: NextRequest) {
   try {
