@@ -102,7 +102,7 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                     <p className="text-sm text-yellow-200 truncate">{ad.description}</p>
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-xl font-bold text-yellow-400">
-                        {formatPrice(ad.price, ad.currency ?? 'USD')}
+                        {formatPrice(Number(ad.price), ad.currency ?? 'USD')}
                       </span>
                       <span className="text-sm text-neutral-300">{ad.city?.name || 'PMR'}</span>
                     </div>

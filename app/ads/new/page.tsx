@@ -179,7 +179,7 @@ export default function CreateAdPage() {
         condition: watchedValues.condition === 'USED' ? 'Б/У' : 'Новое',
       };
     },
-    [watchedValues, cities]
+    [watchedValues, cities, currencySymbols]
   );
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -620,7 +620,7 @@ export default function CreateAdPage() {
             <div className="mt-4 overflow-hidden rounded-3xl border border-neutral-800 bg-[#05070f]">
               <div className="relative aspect-[4/3]">
                 {images[0] ? (
-                  <img src={images[0]} alt="preview" className="h-full w-full object-cover" />
+                  <Image src={images[0]} alt="preview" fill className="object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-dark-bg text-neutral-600">
                     Добавьте фото

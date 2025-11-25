@@ -2,6 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShieldCheck, Lock, BellRing, MessageSquare } from 'lucide-react';
 import FloatingParticles from '@/components/FloatingParticles';
 
@@ -53,7 +54,7 @@ export default function SignInPage() {
                 onClick={handleGoogleSignIn}
                 className="flex items-center justify-center gap-3 rounded-2xl bg-white/90 px-6 py-4 text-lg font-semibold text-black transition hover:bg-white"
               >
-                <img src="/logo.png" alt="Google" className="h-5 w-5" />
+                <Image src="/logo.png" alt="Google" width={20} height={20} className="h-5 w-5" />
                 Войти через Google
               </button>
               <p className="text-sm text-neutral-500">

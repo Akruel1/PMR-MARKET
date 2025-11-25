@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
@@ -138,7 +139,7 @@ export default async function ProfilePage({
         <div className="flex flex-col gap-6 lg:flex-row">
           <div className="flex flex-1 gap-4">
             {user.image ? (
-              <img src={user.image} alt={user.name ?? 'User'} className="h-24 w-24 rounded-full object-cover" />
+              <Image src={user.image} alt={user.name ?? 'User'} width={96} height={96} className="h-24 w-24 rounded-full object-cover" />
             ) : (
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary-500/10 text-3xl font-semibold text-primary-200">
                 {user.name?.[0] || 'U'}

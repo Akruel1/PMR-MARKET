@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X, Heart, MessageCircle, User, Search, MapPin, LogOut, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
@@ -140,7 +141,7 @@ export default function Header() {
                   className="flex items-center gap-3 rounded-2xl border border-blue-500 px-4 py-2.5 min-w-[200px] text-sm text-white transition hover:border-blue-400"
                 >
                   {session.user.image ? (
-                    <img src={session.user.image} alt={session.user.name || 'User'} className="h-10 w-10 rounded-full object-cover" />
+                    <Image src={session.user.image} alt={session.user.name || 'User'} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500 text-base lowercase text-white">
                       {(session.user.name?.[0] || session.user.email?.[0] || 'u').toLowerCase()}

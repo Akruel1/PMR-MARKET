@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
@@ -27,9 +27,9 @@ export default function FavoriteButton({
     if (session?.user) {
       checkFavorite();
     }
-  }, [session, adId]);
+  }, [session, adId, checkFavorite]);
 
-  const checkFavorite = async () => {
+  const checkFavorite = useCallback(async () => {
     try {
       const response = await fetch(`/api/favorites/${adId}`);
       if (response.ok) {
@@ -39,7 +39,7 @@ export default function FavoriteButton({
     } catch (error) {
       // Silent fail
     }
-  };
+  }, [adId]);
 
   const toggleFavorite = async () => {
     if (!session?.user) {

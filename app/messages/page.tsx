@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Send, User, Clock, Circle, Mic } from 'lucide-react';
@@ -85,7 +85,7 @@ export default function MessagesPage() {
         setSelectedConversation(userIdFromUrl);
       }
     }
-  }, [session, searchParams]);
+  }, [session, searchParams, loadConversations]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -103,7 +103,7 @@ export default function MessagesPage() {
   // Removed auto-scroll - user can scroll manually
 
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
       const response = await fetch('/api/messages');
       if (response.ok) {
@@ -118,7 +118,7 @@ export default function MessagesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedConversation]);
 
   const loadMessages = async (userId: string) => {
     try {
