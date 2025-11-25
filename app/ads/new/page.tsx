@@ -15,15 +15,12 @@ import Image from 'next/image';
 const schema = z.object({
   title: z.string().min(3).max(200),
   description: z.string().min(20).max(4000),
-  price: z.preprocess((val) => Number(val), z.number().positive()),
+  price: z.coerce.number().positive(),
   currency: z.enum(['USD', 'EUR', 'RUB', 'MDL']),
   condition: z.enum(['NEW', 'USED']),
   categoryId: z.string().min(1),
   cityId: z.string().min(1),
-  expiresAt: z.preprocess(
-    (val) => (val === undefined || val === null || val === '' ? undefined : new Date(val as string)),
-    z.date().optional()
-  ),
+  expiresAt: z.coerce.date().optional(),
 }).superRefine((data, ctx) => {
   // This validation will be enhanced in the component to check category
   // For now, just validate expiresAt if provided
