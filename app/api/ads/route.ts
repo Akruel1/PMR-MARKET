@@ -112,6 +112,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   data.title = sanitizeInput(data.title);
   data.description = sanitizeInput(data.description);
 
+  try {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { licenseAccepted: true, banned: true },
