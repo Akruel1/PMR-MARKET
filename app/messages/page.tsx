@@ -77,6 +77,23 @@ export default function MessagesPage() {
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  const loadConversations = useCallback(async () => {
+    try {
+      const response = await fetch('/api/messages');
+      if (response.ok) {
+        const data = await response.json();
+        setConversations(data);
+        if (data.length > 0 && !selectedConversation) {
+          setSelectedConversation(data[0].otherUser.id);
+        }
+      }
+    } catch (error) {
+      toast.error('Не удалось загрузить диалоги');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedConversation]);
+
   useEffect(() => {
     if (session?.user) {
       loadConversations();
@@ -101,24 +118,6 @@ export default function MessagesPage() {
   }, [selectedConversation]);
 
   // Removed auto-scroll - user can scroll manually
-
-
-  const loadConversations = useCallback(async () => {
-    try {
-      const response = await fetch('/api/messages');
-      if (response.ok) {
-        const data = await response.json();
-        setConversations(data);
-        if (data.length > 0 && !selectedConversation) {
-          setSelectedConversation(data[0].otherUser.id);
-        }
-      }
-    } catch (error) {
-      toast.error('Не удалось загрузить диалоги');
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedConversation]);
 
   const loadMessages = async (userId: string) => {
     try {

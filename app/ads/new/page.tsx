@@ -157,15 +157,15 @@ export default function CreateAdPage() {
     }
   };
 
-  const currencySymbols: Record<string, string> = {
-    USD: '$',
-    EUR: '€',
-    RUB: '₽',
-    MDL: 'L',
-  };
-
   const featuredPreview = useMemo(
     () => {
+      const currencySymbols: Record<string, string> = {
+        USD: '$',
+        EUR: '€',
+        RUB: '₽',
+        MDL: 'L',
+      };
+      
       const currency = watchedValues.currency || 'USD';
       const symbol = currencySymbols[currency] || currency;
       const price = watchedValues.price 
@@ -179,7 +179,7 @@ export default function CreateAdPage() {
         condition: watchedValues.condition === 'USED' ? 'Б/У' : 'Новое',
       };
     },
-    [watchedValues, cities, currencySymbols]
+    [watchedValues, cities]
   );
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
