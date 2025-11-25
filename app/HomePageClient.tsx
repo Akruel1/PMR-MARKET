@@ -194,12 +194,12 @@ export default function HomePageClient({
       <section className="relative overflow-hidden border-b border-neutral-900 bg-gradient-to-br from-dark-bg via-dark-bg2 to-[#0c101b]">
         <FloatingParticles />
         <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 text-center lg:py-16">
-          <p className="mx-auto flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-primary-200">
+          <div className="mx-auto flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-primary-200">
             <div className="w-6 h-6 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center">
               <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
             </div>
             PMR Market
-          </p>
+          </div>
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold text-dark-text md:text-5xl">
               PMR Market — найдёшь всё, что рядом
