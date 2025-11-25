@@ -284,4 +284,4 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     console.error('Error creating ad:', error);
     return NextResponse.json({ error: 'Failed to create ad' }, { status: 500 });
   }
-}
+});

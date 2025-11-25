@@ -231,3 +231,74 @@ ${reason ? `\n<b>Причина:</b> ${reason}` : '\nПожалуйста, пр�
   return await sendTelegramMessage(chatId, message);
 }
 
+export async function sendAdModerationNotificationToAdmins(
+  adId: string,
+  title: string,
+  userName: string,
+  userEmail: string,
+  categoryName: string,
+  cityName: string,
+  price: number,
+  currency: string
+): Promise<boolean> {
+  const { PrismaClient } = await import('@prisma/client');
+  const prisma = new PrismaClient();
+
+  try {
+    // Find all admin users with linked Telegram accounts
+    const adminUsers = await prisma.user.findMany({
+      where: {
+        role: 'ADMIN',
+        telegramChatId: { not: null },
+        telegramBotLicenseAccepted: true,
+      },
+      select: {
+        telegramChatId: true,
+        email: true, // For logging/debugging
+      },
+    });
+
+    if (adminUsers.length === 0) {
+      console.log('No Telegram-linked admins found for moderation notification.');
+      return false;
+    }
+
+    const adUrl = `${BASE_URL}/admin/ads/${adId}`;
+
+    const message = `
+🚨 <b>НОВОЕ ОБЪЯВЛЕНИЕ НА МОДЕРАЦИЮ</b> 🚨
+
+<b>Название:</b> ${title}
+<b>Цена:</b> ${price} ${currency}
+<b>Категория:</b> ${categoryName}
+<b>Город:</b> ${cityName}
+<b>Автор:</b> ${userName}
+<b>Email автора:</b> ${userEmail}
+<b>Время подачи:</b> ${new Date().toLocaleString('ru-RU')}
+
+<a href="${adUrl}">Посмотреть объявление в админке</a>
+    `.trim();
+
+    const buttons = [
+      [
+        { text: '✅ Одобрить', callback_data: `approve_ad_${adId}` },
+        { text: '❌ Отклонить', callback_data: `reject_ad_${adId}` },
+      ],
+    ];
+
+    let allSent = true;
+    for (const admin of adminUsers) {
+      if (admin.telegramChatId) {
+        const sent = await sendTelegramMessageWithButtons(admin.telegramChatId, message, buttons);
+        if (!sent) allSent = false;
+      }
+    }
+    return allSent;
+  } catch (error) {
+    console.error('Error sending admin notification:', error);
+    return false;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
