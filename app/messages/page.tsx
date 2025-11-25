@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Send, User, Clock, Circle, Mic } from 'lucide-react';
@@ -59,7 +59,7 @@ interface Conversation {
   };
 }
 
-export default function MessagesPage() {
+function MessagesContent() {
   const { data: session } = useSession();
   const { locale } = useLocale();
   const searchParams = useSearchParams();
@@ -571,5 +571,15 @@ export default function MessagesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-dark-bg flex items-center justify-center">
+      <div className="text-white">Загрузка сообщений...</div>
+    </div>}>
+      <MessagesContent />
+    </Suspense>
   );
 }

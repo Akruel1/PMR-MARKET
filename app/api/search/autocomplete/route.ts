@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { withErrorHandling } from '@/lib/error-handler';
 import { sanitizeInput } from '@/lib/sanitize';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');

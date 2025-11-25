@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Home, Eye } from 'lucide-react';
 
-export default function AdSuccessPage() {
+function AdSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'approved' | 'pending' | null>(null);
@@ -102,6 +102,16 @@ export default function AdSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-dark-bg flex items-center justify-center">
+      <div className="text-white">Загрузка...</div>
+    </div>}>
+      <AdSuccessContent />
+    </Suspense>
   );
 }
 
