@@ -252,6 +252,13 @@ function MessagesContent() {
     }
   }, [selectedConversation, selectedUserFromConversations, session]);
 
+  // On mobile, hide conversations list when a conversation is selected
+  useEffect(() => {
+    if (selectedConversation && window.innerWidth < 768) {
+      setShowConversationsList(false);
+    }
+  }, [selectedConversation]);
+
   const selectedUser = selectedUserFromConversations || newUserInfo;
 
   if (!session?.user) {
@@ -269,13 +276,6 @@ function MessagesContent() {
       </div>
     );
   }
-
-  // On mobile, hide conversations list when a conversation is selected
-  useEffect(() => {
-    if (selectedConversation && window.innerWidth < 768) {
-      setShowConversationsList(false);
-    }
-  }, [selectedConversation]);
 
   return (
     <div className="container-custom py-4 sm:py-8 h-[calc(100vh-4rem)] sm:h-[calc(100vh-8rem)]">
