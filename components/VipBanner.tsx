@@ -29,6 +29,18 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showInfoModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showInfoModal]);
+
   // Add info banner as last item
   const allItems = [
     ...vipAds.slice(0, 2), // First 2 VIP ads
@@ -134,29 +146,32 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
 
       {/* Info Modal */}
       {showInfoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-          <div className="relative max-w-2xl w-full rounded-2xl border-2 border-yellow-500 bg-[#0b101c] p-8">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <div className="relative max-w-2xl w-full rounded-2xl border-2 border-yellow-500 bg-[#0b101c] p-4 sm:p-6 md:p-8 my-auto">
             <button
               onClick={() => setShowInfoModal(false)}
-              className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-neutral-400 hover:text-white z-10"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
             
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Crown className="h-10 w-10 text-yellow-400" />
-                <h2 className="text-3xl font-bold text-white">VIP объявления</h2>
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Crown className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-yellow-400" />
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">VIP объявления</h2>
               </div>
 
-              <div className="space-y-4 text-neutral-300">
-                <p className="text-lg">
+              <div className="space-y-3 sm:space-y-4 text-neutral-300">
+                <p className="text-sm sm:text-base md:text-lg">
                   VIP объявления — это платная услуга, которая позволяет вашему объявлению выделяться среди других.
                 </p>
 
-                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 space-y-2">
-                  <h3 className="text-lg font-semibold text-yellow-400">Преимущества VIP:</h3>
-                  <ul className="list-disc list-inside space-y-1 ml-2">
+                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-3 sm:p-4 space-y-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-yellow-400">Преимущества VIP:</h3>
+                  <ul className="list-disc list-inside space-y-1 ml-2 text-sm sm:text-base">
                     <li>Золотая обводка и пометка VIP</li>
                     <li>Отображение во всех категориях</li>
                     <li>Приоритетное размещение в списке</li>
@@ -164,41 +179,41 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                   </ul>
                 </div>
 
-                <div className="bg-dark-bg2 border border-neutral-700 rounded-xl p-4 space-y-2">
-                  <h3 className="text-lg font-semibold text-white">Стоимость:</h3>
-                  <p>
+                <div className="bg-dark-bg2 border border-neutral-700 rounded-xl p-3 sm:p-4 space-y-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Стоимость:</h3>
+                  <p className="text-sm sm:text-base">
                     Цена зависит от времени нахождения объявления в VIP-статусе:
                   </p>
-                  <ul className="list-disc list-inside space-y-1 ml-2">
+                  <ul className="list-disc list-inside space-y-1 ml-2 text-sm sm:text-base">
                     <li>1 день — от 50 MDL</li>
-                    <li>3 дня — от 120 MDL</li>
-                    <li>7 дней — от 250 MDL</li>
-                    <li>30 дней — от 900 MDL</li>
+                    <li>3 дня — от 120 RUB</li>
+                    <li>7 дней — от 250 RUB</li>
+                    <li>30 дней — от 900 RUB</li>
                   </ul>
                 </div>
 
-                <div className="bg-primary-900/20 border border-primary-500/30 rounded-xl p-4">
-                  <h3 className="text-lg font-semibold text-primary-400 mb-2">Как оформить:</h3>
-                  <p className="mb-3">
+                <div className="bg-primary-900/20 border border-primary-500/30 rounded-xl p-3 sm:p-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-primary-400 mb-2">Как оформить:</h3>
+                  <p className="mb-3 text-sm sm:text-base">
                     Свяжитесь с нами для оформления VIP-статуса:
                   </p>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     <a
                       href="https://t.me/pmrmarketsupport"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-3 text-white font-semibold hover:bg-primary-600 transition w-full justify-center"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm md:text-base text-white font-semibold hover:bg-primary-600 transition w-full justify-center"
                     >
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.174 1.858-.924 6.33-1.304 8.392-.17.94-.504 1.254-.827 1.285-.699.062-1.229-.461-1.906-.903-1.056-.691-1.653-1.12-2.678-1.794-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559.099.014.19.064.263.157.09.117.123.274.09.431z"/>
                       </svg>
                       Telegram: @pmrmarketsupport
                     </a>
                     <a
                       href="mailto:pmrmarket@proton.me"
-                      className="inline-flex items-center gap-2 rounded-xl bg-secondary-500 px-6 py-3 text-white font-semibold hover:bg-secondary-600 transition w-full justify-center"
+                      className="inline-flex items-center gap-2 rounded-xl bg-secondary-500 px-4 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm md:text-base text-white font-semibold hover:bg-secondary-600 transition w-full justify-center"
                     >
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                       </svg>
                       Email: pmrmarket@proton.me

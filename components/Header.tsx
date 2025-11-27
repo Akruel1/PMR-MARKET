@@ -59,6 +59,18 @@ export default function Header() {
     };
   }, []);
 
+  // Lock body scroll when user menu is open on mobile
+  useEffect(() => {
+    if (userMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [userMenuOpen]);
+
   return (
     <header className="sticky top-0 z-50 border-b border-dark-bg2/70 bg-[#080b12]/80 backdrop-blur-xl">
       <div className="container-custom flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
@@ -140,12 +152,12 @@ export default function Header() {
                     e.stopPropagation();
                     setUserMenuOpen((prev) => !prev);
                   }}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-500 px-3 py-2 text-sm text-white transition hover:border-blue-400 sm:w-auto sm:justify-start sm:gap-3 sm:px-4 sm:py-2.5 sm:min-w-[200px]"
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500 px-2.5 py-2 text-sm text-white transition hover:border-blue-400 sm:justify-start sm:gap-3 sm:px-4 sm:py-2.5 sm:min-w-[200px]"
                 >
                   {session.user.image ? (
-                    <Image src={session.user.image} alt={session.user.name || 'User'} width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                    <Image src={session.user.image} alt={session.user.name || 'User'} width={40} height={40} className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 rounded-full object-cover" />
                   ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-500 text-base lowercase text-white">
+                    <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-purple-500 text-base lowercase text-white">
                       {(session.user.name?.[0] || session.user.email?.[0] || 'u').toLowerCase()}
                     </div>
                   )}
@@ -162,43 +174,43 @@ export default function Header() {
                 {userMenuOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-[60]"
+                      className="fixed inset-0 z-[60] sm:bg-transparent bg-black/50"
                       onClick={() => setUserMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-full z-[70] mt-2 w-56 rounded-2xl border border-neutral-900 bg-[#05070f] p-3 text-sm text-white shadow-xl">
-                      <p className="px-3 py-2 text-xs uppercase tracking-[0.3em] text-neutral-500">Account</p>
+                    <div className="absolute right-0 top-full z-[70] mt-2 w-56 sm:w-56 max-w-[calc(100vw-1rem)] rounded-2xl border border-neutral-900 bg-[#05070f] p-2 sm:p-3 text-sm text-white shadow-xl sm:shadow-xl">
+                      <p className="px-2 sm:px-3 py-2 text-xs uppercase tracking-[0.3em] text-neutral-500">Account</p>
                       <Link
                         href="/profile"
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-300 hover:bg-dark-bg transition"
+                        className="flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <User className="h-4 w-4" />
+                        <User className="h-4 w-4 shrink-0" />
                         Профиль
                       </Link>
                       <Link
                         href="/favorites"
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-300 hover:bg-dark-bg transition"
+                        className="flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <Heart className="h-4 w-4" />
+                        <Heart className="h-4 w-4 shrink-0" />
                         Избранное
                       </Link>
                       <Link
                         href="/messages"
-                        className="relative flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-300 hover:bg-dark-bg transition"
+                        className="relative flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <MessageCircle className="h-4 w-4" />
+                        <MessageCircle className="h-4 w-4 shrink-0" />
                         Сообщения
                         <MessageNotificationBadge />
                       </Link>
                       {session.user.role === 'ADMIN' && (
                         <Link
                           href="/admin"
-                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-300 hover:bg-dark-bg transition"
+                          className="flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                           onClick={() => setUserMenuOpen(false)}
                         >
-                          <LayoutDashboard className="h-4 w-4" />
+                          <LayoutDashboard className="h-4 w-4 shrink-0" />
                           Админ-панель
                         </Link>
                       )}
@@ -208,9 +220,9 @@ export default function Header() {
                           setUserMenuOpen(false);
                           signOut({ callbackUrl: '/' });
                         }}
-                        className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-red-400 hover:bg-red-500/10 transition"
+                        className="mt-2 flex w-full items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition"
                       >
-                        <LogOut className="h-4 w-4" />
+                        <LogOut className="h-4 w-4 shrink-0" />
                         Выйти
                       </button>
                     </div>

@@ -78,7 +78,7 @@ export default function Logo({ href = '/', compact = false, useImage = true }: L
   );
 
   const content = (
-    <div className="flex items-center gap-2.5 -ml-[120px]"> {/* Сдвиг влево на 3-4 см */}
+    <div className="flex items-center gap-2.5"> {/* Логотип без отрицательного отступа */}
       {/* Icon - Image or SVG */}
       <div className="flex-shrink-0">
         {useImage ? (

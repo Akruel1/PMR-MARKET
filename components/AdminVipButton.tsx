@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Crown, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,6 +18,18 @@ export default function AdminVipButton({ adId, adTitle, isVip, vipExpiresAt, sta
   const [loading, setLoading] = useState(false);
   const [vipModal, setVipModal] = useState(false);
   const [vipDays, setVipDays] = useState(7);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (vipModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [vipModal]);
 
   const isVipActive = isVip && (!vipExpiresAt || new Date(vipExpiresAt) >= new Date());
 
@@ -112,16 +124,20 @@ export default function AdminVipButton({ adId, adTitle, isVip, vipExpiresAt, sta
       )}
 
       {vipModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setVipModal(false)}>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto" 
+          onClick={() => setVipModal(false)}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <div
-            className="w-full max-w-md rounded-3xl border border-yellow-500/50 bg-[#05070f] p-6 shadow-[0_20px_60px_rgba(234,179,8,0.3)]"
+            className="w-full max-w-md rounded-3xl border border-yellow-500/50 bg-[#05070f] p-4 sm:p-6 shadow-[0_20px_60px_rgba(234,179,8,0.3)] my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-4">
-              <Crown className="h-6 w-6 text-yellow-400" />
-              <h3 className="text-xl font-semibold text-white">Установить VIP статус</h3>
+              <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-400" />
+              <h3 className="text-lg sm:text-xl font-semibold text-white">Установить VIP статус</h3>
             </div>
-            <p className="text-sm text-neutral-400 mb-4">
+            <p className="text-xs sm:text-sm text-neutral-400 mb-4">
               Выберите срок действия VIP статуса для объявления "{adTitle}"
             </p>
             <div className="space-y-3">
@@ -140,11 +156,11 @@ export default function AdminVipButton({ adId, adTitle, isVip, vipExpiresAt, sta
                   <option value={0}>Без ограничений</option>
                 </select>
               </label>
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 mt-6">
                 <button
                   type="button"
                   onClick={() => setVipModal(false)}
-                  className="rounded-2xl border border-neutral-800 px-4 py-2 text-sm font-semibold text-white hover:border-primary-500"
+                  className="rounded-2xl border border-neutral-800 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white hover:border-primary-500"
                 >
                   Отмена
                 </button>
@@ -152,7 +168,7 @@ export default function AdminVipButton({ adId, adTitle, isVip, vipExpiresAt, sta
                   type="button"
                   onClick={handleSetVip}
                   disabled={loading}
-                  className="rounded-2xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-black hover:bg-yellow-600 disabled:opacity-50"
+                  className="rounded-2xl bg-yellow-500 px-4 py-2.5 text-xs sm:text-sm font-semibold text-black hover:bg-yellow-600 disabled:opacity-50"
                 >
                   {loading ? 'Установка...' : 'Установить VIP'}
                 </button>

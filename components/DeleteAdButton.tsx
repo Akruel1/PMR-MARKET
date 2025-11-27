@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,6 +16,18 @@ export default function DeleteAdButton({ adId, adTitle, onDeleted, variant = 'bu
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showModal]);
 
   const handleDelete = async () => {
     setSubmitting(true);
@@ -56,26 +68,27 @@ export default function DeleteAdButton({ adId, adTitle, onDeleted, variant = 'bu
 
         {showModal && (
           <div
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
             onClick={() => setShowModal(false)}
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <div
-              className="bg-dark-bg2 border border-neutral-700 rounded-lg p-6 max-w-md w-full"
+              className="bg-dark-bg2 border border-neutral-700 rounded-lg p-4 sm:p-6 max-w-md w-full my-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-white mb-2">Удалить объявление</h3>
-              <p className="text-neutral-400 mb-4">Вы уверены, что хотите удалить "{adTitle}"?</p>
-              <div className="flex justify-end space-x-3">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Удалить объявление</h3>
+              <p className="text-sm sm:text-base text-neutral-400 mb-4">Вы уверены, что хотите удалить "{adTitle}"?</p>
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg bg-neutral-700 text-white hover:bg-neutral-600 transition-colors"
+                  className="px-4 py-2.5 rounded-lg bg-neutral-700 text-white hover:bg-neutral-600 transition-colors text-sm sm:text-base"
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={submitting}
-                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   {submitting ? 'Удаление...' : 'Удалить'}
                 </button>
@@ -99,26 +112,27 @@ export default function DeleteAdButton({ adId, adTitle, onDeleted, variant = 'bu
 
       {showModal && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
           onClick={() => setShowModal(false)}
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <div
-            className="bg-dark-bg2 border border-neutral-700 rounded-lg p-6 max-w-md w-full"
+            className="bg-dark-bg2 border border-neutral-700 rounded-lg p-4 sm:p-6 max-w-md w-full my-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-bold text-white mb-2">Удалить объявление</h3>
-            <p className="text-neutral-400 mb-4">Вы уверены, что хотите удалить "{adTitle}"?</p>
-            <div className="flex justify-end space-x-3">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Удалить объявление</h3>
+            <p className="text-sm sm:text-base text-neutral-400 mb-4">Вы уверены, что хотите удалить "{adTitle}"?</p>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-neutral-700 text-white hover:bg-neutral-600 transition-colors"
+                className="px-4 py-2.5 rounded-lg bg-neutral-700 text-white hover:bg-neutral-600 transition-colors text-sm sm:text-base"
               >
                 Отмена
               </button>
               <button
                 onClick={handleDelete}
                 disabled={submitting}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 {submitting ? 'Удаление...' : 'Удалить'}
               </button>
