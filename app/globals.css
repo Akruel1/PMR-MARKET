@@ -25,3 +25,29 @@ body {
   @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
 }
 
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  /* Prevent text size adjustment on iOS */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Improve tap targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better scroll behavior */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+

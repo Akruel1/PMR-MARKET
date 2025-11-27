@@ -209,7 +209,7 @@ export default function HomePageClient({
             </p>
           </div>
 
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 rounded-3xl border border-neutral-800 bg-dark-bg/70 p-4 shadow-lg shadow-black/30 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 rounded-3xl border border-neutral-800 bg-dark-bg/70 p-4 shadow-lg shadow-black/30 backdrop-blur sm:p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
@@ -219,27 +219,29 @@ export default function HomePageClient({
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="Поиск товаров, регионов, производителей..."
-                  className="w-full rounded-2xl border border-neutral-800 bg-dark-bg2 py-4 pl-12 pr-4 text-base text-dark-text placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none"
+                  className="w-full rounded-2xl border border-neutral-800 bg-dark-bg2 py-3 pl-12 pr-4 text-sm text-dark-text placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none sm:py-4 sm:text-base"
                 />
               </div>
               <button
                 onClick={handleSearch}
                 disabled={isPending}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-primary-500 px-6 py-3 font-semibold text-white transition hover:bg-primary-600 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-60 sm:w-auto sm:text-base"
               >
                 <Search className="h-4 w-4" />
                 {isPending ? 'Поиск...' : 'Найти'}
               </button>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-neutral-400">
+            <div className="flex flex-col gap-3 text-sm text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary-300" />
-                {initialFilters.cityId
-                  ? `Город: ${cities.find((city) => city.id === initialFilters.cityId)?.name ?? 'Выбран'}`
-                  : 'Все города ПМР'}
+                <MapPin className="h-4 w-4 shrink-0 text-primary-300" />
+                <span className="truncate">
+                  {initialFilters.cityId
+                    ? `Город: ${cities.find((city) => city.id === initialFilters.cityId)?.name ?? 'Выбран'}`
+                    : 'Все города ПМР'}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
-                <span>Сделки | Безопасность | Telegram уведомления</span>
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-neutral-500 sm:tracking-[0.3em]">
+                <span className="truncate">Сделки | Безопасность | Telegram уведомления</span>
               </div>
             </div>
           </div>
@@ -337,14 +339,14 @@ export default function HomePageClient({
         </div>
 
         <div className="grid gap-4 rounded-3xl border border-neutral-900 bg-dark-bg/80 p-6 shadow-inner shadow-black/30 backdrop-blur">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-dark-textSecondary">
-              <SlidersHorizontal className="h-5 w-5 text-primary-400" />
-              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                Фильтры
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-2 text-dark-textSecondary">
+                <SlidersHorizontal className="h-5 w-5 shrink-0 text-primary-400" />
+                <span className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                  Фильтры
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
               <label className="flex items-center gap-2 text-sm text-dark-textSecondary">
                 Город
                 <select

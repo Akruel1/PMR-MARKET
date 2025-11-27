@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: 'PMR Market',
   description: 'Купля-продажа товаров и услуг в Приднестровье',
   manifest: '/manifest.webmanifest',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
   icons: {
     icon: [
       { url: '/favicon.png', sizes: '32x32', type: 'image/png' },

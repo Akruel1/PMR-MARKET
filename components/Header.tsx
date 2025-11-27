@@ -62,7 +62,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-dark-bg2/70 bg-[#080b12]/80 backdrop-blur-xl">
       <div className="container-custom flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
-        <div className="flex items-center justify-between gap-4 -ml-[120px]"> {/* Сдвиг влево на 3-4 см */}
+        <div className="flex items-center justify-between gap-4">
           <Logo />
           <div className="flex items-center gap-2 md:hidden">
             <button
@@ -75,23 +75,25 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
-          <div className="flex flex-1 rounded-2xl border border-neutral-800 bg-dark-bg2/80 px-4 py-2 shadow-inner shadow-black/30">
-            <Search className="mr-3 mt-1 h-4 w-4 text-neutral-500" />
-            <input
-              placeholder="Search products, regions..."
-              className="flex-1 bg-transparent text-sm text-dark-text placeholder:text-neutral-500 focus:outline-none"
-            />
-            <div className="relative" ref={cityMenuRef}>
+          <div className="flex flex-1 flex-col gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2/80 p-3 shadow-inner shadow-black/30 sm:flex-row sm:items-center sm:px-4 sm:py-2 sm:gap-0">
+            <div className="flex flex-1 items-center">
+              <Search className="mr-3 h-4 w-4 shrink-0 text-neutral-500" />
+              <input
+                placeholder="Search products, regions..."
+                className="flex-1 min-w-0 bg-transparent text-sm text-dark-text placeholder:text-neutral-500 focus:outline-none"
+              />
+            </div>
+            <div className="relative shrink-0 sm:ml-2" ref={cityMenuRef}>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setCityOpen((prev) => !prev);
                 }}
-                className="flex items-center gap-1 rounded-full bg-dark-bg px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 transition hover:text-white"
+                className="flex w-full items-center justify-center gap-1 rounded-full bg-dark-bg px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400 transition hover:text-white sm:w-auto"
               >
-                <MapPin className="h-4 w-4 text-primary-300" />
-                City: {selectedCity}
+                <MapPin className="h-4 w-4 shrink-0 text-primary-300" />
+                <span className="truncate">City: {selectedCity}</span>
               </button>
               {cityOpen && (
                 <>
@@ -138,21 +140,21 @@ export default function Header() {
                     e.stopPropagation();
                     setUserMenuOpen((prev) => !prev);
                   }}
-                  className="flex items-center gap-3 rounded-2xl border border-blue-500 px-4 py-2.5 min-w-[200px] text-sm text-white transition hover:border-blue-400"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-500 px-3 py-2 text-sm text-white transition hover:border-blue-400 sm:w-auto sm:justify-start sm:gap-3 sm:px-4 sm:py-2.5 sm:min-w-[200px]"
                 >
                   {session.user.image ? (
-                    <Image src={session.user.image} alt={session.user.name || 'User'} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
+                    <Image src={session.user.image} alt={session.user.name || 'User'} width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500 text-base lowercase text-white">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-500 text-base lowercase text-white">
                       {(session.user.name?.[0] || session.user.email?.[0] || 'u').toLowerCase()}
                     </div>
                   )}
-                  <div className="hidden sm:flex flex-col items-start">
-                    <span className="text-sm leading-tight">{session.user.name || 'Profile'}</span>
+                  <div className="hidden flex-col items-start sm:flex">
+                    <span className="text-sm leading-tight truncate max-w-[150px]">{session.user.name || 'Profile'}</span>
                     {session.user.email && (
                       <>
-                        <span className="text-xs text-neutral-300 leading-tight">{session.user.email.split('@')[0]}</span>
-                        <span className="text-xs text-neutral-400 leading-tight">{session.user.email}</span>
+                        <span className="text-xs text-neutral-300 leading-tight truncate max-w-[150px]">{session.user.email.split('@')[0]}</span>
+                        <span className="text-xs text-neutral-400 leading-tight truncate max-w-[150px]">{session.user.email}</span>
                       </>
                     )}
                   </div>
