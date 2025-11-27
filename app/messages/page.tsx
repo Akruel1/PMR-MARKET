@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { Send, User, Clock, Circle, Mic } from 'lucide-react';
+import { Send, User, Clock, Circle, Mic, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { formatDate } from '@/lib/utils';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -75,6 +75,7 @@ function MessagesContent() {
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [showConversationsList, setShowConversationsList] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const loadConversations = useCallback(async () => {
@@ -269,12 +270,19 @@ function MessagesContent() {
     );
   }
 
+  // On mobile, hide conversations list when a conversation is selected
+  useEffect(() => {
+    if (selectedConversation && window.innerWidth < 768) {
+      setShowConversationsList(false);
+    }
+  }, [selectedConversation]);
+
   return (
-    <div className="container-custom py-8 h-[calc(100vh-8rem)]">
+    <div className="container-custom py-4 sm:py-8 h-[calc(100vh-4rem)] sm:h-[calc(100vh-8rem)]">
       <div className="flex gap-4 h-full">
         {/* Conversations List */}
-        <div className="w-[350px] flex-shrink-0 rounded-[32px] border border-neutral-900 bg-[#080c16] flex flex-col overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.45)]">
-          <div className="p-6 border-b border-neutral-900">
+        <div className={`${showConversationsList ? 'flex' : 'hidden'} sm:flex w-full sm:w-[350px] flex-shrink-0 rounded-[32px] border border-neutral-900 bg-[#080c16] flex-col overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.45)]`}>
+          <div className="p-4 sm:p-6 border-b border-neutral-900">
             <h2 className="text-xl font-semibold text-white">Сообщения</h2>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -282,7 +290,12 @@ function MessagesContent() {
               conversations.map((conv) => (
                 <button
                   key={conv.id}
-                  onClick={() => setSelectedConversation(conv.otherUser.id)}
+                  onClick={() => {
+                    setSelectedConversation(conv.otherUser.id);
+                    if (window.innerWidth < 768) {
+                      setShowConversationsList(false);
+                    }
+                  }}
                   className={`w-full p-4 text-left transition-all ${
                     selectedConversation === conv.otherUser.id
                       ? 'bg-primary-500/10 border-l-2 border-primary-500'
@@ -358,10 +371,16 @@ function MessagesContent() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 flex flex-col overflow-hidden rounded-[32px] border border-neutral-900 bg-[#0b101c] shadow-[0_20px_45px_rgba(0,0,0,0.45)]">
+        <div className={`${!showConversationsList ? 'flex' : 'hidden'} sm:flex flex-1 flex-col overflow-hidden rounded-[32px] border border-neutral-900 bg-[#0b101c] shadow-[0_20px_45px_rgba(0,0,0,0.45)]`}>
           {selectedConversation && selectedUser ? (
             <>
               <div className="p-4 border-b border-neutral-900 bg-[#080c16] flex items-center space-x-3">
+                <button
+                  onClick={() => setShowConversationsList(true)}
+                  className="sm:hidden flex-shrink-0 p-2 hover:bg-neutral-900 rounded-lg transition"
+                >
+                  <ArrowLeft className="h-5 w-5 text-white" />
+                </button>
                 {selectedUser?.image ? (
                   <Image
                     src={selectedUser.image}
@@ -562,7 +581,7 @@ function MessagesContent() {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-neutral-400">
-              <div className="text-center">
+              <div className="text-center px-4">
                 <p className="text-lg mb-2">Выберите диалог</p>
                 <p className="text-sm">или нажмите "Связаться" на объявлении, чтобы начать переписку</p>
               </div>

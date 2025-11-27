@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Crown, X } from 'lucide-react';
@@ -28,6 +28,18 @@ function formatPrice(value?: number | null, currency: string = 'USD') {
 export default function VipBanner({ vipAds }: VipBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -47,15 +59,40 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
     { id: 'info', isInfo: true }, // Info banner
   ];
 
+  // Auto-scroll only on desktop
   useEffect(() => {
-    if (allItems.length <= 1) return;
+    if (allItems.length <= 1 || isMobile) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % allItems.length);
     }, 5000); // Change every 5 seconds
 
     return () => clearInterval(interval);
-  }, [allItems.length]);
+  }, [allItems.length, isMobile]);
+
+  // Handle scroll on mobile
+  const handleScroll = () => {
+    if (!scrollContainerRef.current || !isMobile) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const itemWidth = container.clientWidth;
+    const newIndex = Math.round(scrollLeft / itemWidth);
+    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < allItems.length) {
+      setCurrentIndex(newIndex);
+    }
+  };
+
+  // Scroll to current index on mobile when index changes programmatically
+  useEffect(() => {
+    if (isMobile && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const itemWidth = container.clientWidth;
+      container.scrollTo({
+        left: currentIndex * itemWidth,
+        behavior: 'smooth'
+      });
+    }
+  }, [currentIndex, isMobile]);
 
   if (allItems.length === 0) return null;
 
@@ -66,15 +103,21 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
       <div className="relative mx-auto max-w-6xl px-4 mb-6 overflow-hidden">
         <div className="relative h-28 sm:h-32 rounded-xl sm:rounded-2xl border-2 border-yellow-500/50 bg-gradient-to-r from-yellow-900/20 via-yellow-800/20 to-yellow-900/20 overflow-hidden">
           <div
-            className="flex transition-transform duration-500 ease-in-out h-full"
-            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className={`flex h-full ${
+              isMobile 
+                ? 'overflow-x-auto snap-x snap-mandatory scrollbar-hide' 
+                : 'transition-transform duration-500 ease-in-out overflow-hidden'
+            }`}
+            style={!isMobile ? { transform: `translateX(-${currentIndex * 100}%)` } : {}}
           >
             {allItems.map((item, index) => {
               if ('isInfo' in item && item.isInfo) {
                 return (
                   <div
                     key="info"
-                    className="min-w-full flex items-center justify-center px-4 sm:px-8 cursor-pointer active:bg-yellow-900/10 transition"
+                    className={`min-w-full flex items-center justify-center px-4 sm:px-8 cursor-pointer active:bg-yellow-900/10 transition ${isMobile ? 'snap-start' : ''}`}
                     onClick={() => setShowInfoModal(true)}
                   >
                     <div className="flex items-center gap-2 sm:gap-4 text-white">
@@ -96,7 +139,7 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                 <Link
                   key={ad.id}
                   href={href}
-                  className="min-w-full flex items-center gap-3 sm:gap-6 px-4 sm:px-8 hover:bg-yellow-900/10 active:bg-yellow-900/20 transition"
+                  className={`min-w-full flex items-center gap-3 sm:gap-6 px-4 sm:px-8 hover:bg-yellow-900/10 active:bg-yellow-900/20 transition ${isMobile ? 'snap-start' : ''}`}
                 >
                   <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-lg sm:rounded-xl overflow-hidden flex-shrink-0">
                     <Image
@@ -125,8 +168,8 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
             })}
           </div>
 
-          {/* Navigation dots */}
-          {allItems.length > 1 && (
+          {/* Navigation dots - only on desktop */}
+          {allItems.length > 1 && !isMobile && (
             <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 sm:gap-2">
               {allItems.map((_, index) => (
                 <button
