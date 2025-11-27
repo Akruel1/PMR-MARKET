@@ -288,7 +288,7 @@ export default function HomePageClient({
               Сбросить фильтры
             </button>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
             {featuredCategories.map((category) => {
               const active = isParentActive(category.id);
               return (
@@ -299,7 +299,7 @@ export default function HomePageClient({
                       categoryId: active ? undefined : category.id,
                     })
                   }
-                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
+                  className={`whitespace-nowrap rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition flex-shrink-0 ${
                     active
                       ? 'bg-primary-500 text-white shadow shadow-primary-500/40'
                       : 'bg-dark-bg2 text-dark-textSecondary hover:bg-dark-bg'
@@ -312,43 +312,44 @@ export default function HomePageClient({
           </div>
 
           {selectedParentCategory && selectedParentCategory.children.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2/60 p-4">
-              <p className="text-sm font-semibold text-dark-text">Подкатегории:</p>
-              {selectedParentCategory.children.map((child) => {
-                const active = initialFilters.categoryId === child.id;
-                return (
-                  <button
-                    key={child.id}
-                    onClick={() =>
-                      applyFilters({
-                        categoryId: child.id,
-                      })
-                    }
-                    className={`rounded-full px-3 py-1 text-sm transition ${
-                      active
-                        ? 'bg-primary-500/80 text-white'
-                        : 'bg-dark-bg text-dark-textSecondary hover:bg-dark-bg'
-                    }`}
-                  >
-                    {child.name}
-                  </button>
-                );
-              })}
+            <div className="rounded-xl sm:rounded-2xl border border-neutral-800 bg-dark-bg2/60 p-3 sm:p-4">
+              <p className="text-xs sm:text-sm font-semibold text-dark-text mb-3">Подкатегории:</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedParentCategory.children.map((child) => {
+                  const active = initialFilters.categoryId === child.id;
+                  return (
+                    <button
+                      key={child.id}
+                      onClick={() =>
+                        applyFilters({
+                          categoryId: child.id,
+                        })
+                      }
+                      className={`rounded-full px-3 py-1.5 text-xs sm:text-sm transition whitespace-nowrap ${
+                        active
+                          ? 'bg-primary-500/80 text-white'
+                          : 'bg-dark-bg text-dark-textSecondary hover:bg-dark-bg'
+                      }`}
+                    >
+                      {child.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        <div className="grid gap-4 rounded-3xl border border-neutral-900 bg-dark-bg/80 p-6 shadow-inner shadow-black/30 backdrop-blur">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2 text-dark-textSecondary">
-                <SlidersHorizontal className="h-5 w-5 shrink-0 text-primary-400" />
-                <span className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                  Фильтры
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-dark-textSecondary">
-                Город
+        <div className="rounded-2xl sm:rounded-3xl border border-neutral-900 bg-dark-bg/80 p-4 sm:p-6 shadow-inner shadow-black/30 backdrop-blur">
+            <div className="flex items-center gap-2 mb-4">
+              <SlidersHorizontal className="h-5 w-5 shrink-0 text-primary-400" />
+              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                Фильтры
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <label className="flex flex-col gap-2 text-sm text-dark-textSecondary">
+                <span>Город</span>
                 <select
                   value={initialFilters.cityId}
                   onChange={(e) =>
@@ -356,7 +357,7 @@ export default function HomePageClient({
                       cityId: e.target.value || undefined,
                     })
                   }
-                  className="rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
+                  className="w-full rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2.5 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
                 >
                   <option value="">Все города</option>
                   {cities.map((city) => (
@@ -367,55 +368,61 @@ export default function HomePageClient({
                 </select>
               </label>
 
-              <div className="flex items-center gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2 px-3 py-2">
-                {conditionOptions.map((option) => {
-                  const active = initialFilters.condition === option.value;
-                  return (
-                    <button
-                      key={option.value || 'all'}
-                      onClick={() =>
-                        applyFilters({
-                          condition: option.value || undefined,
-                        })
-                      }
-                      className={`rounded-xl px-3 py-1 text-sm transition ${
-                        active
-                          ? 'bg-primary-500 text-white'
-                          : 'text-dark-textSecondary hover:text-dark-text'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
+              <div className="flex flex-col gap-2">
+                <span className="text-sm text-dark-textSecondary">Состояние</span>
+                <div className="flex items-center gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2 px-2 py-1.5">
+                  {conditionOptions.map((option) => {
+                    const active = initialFilters.condition === option.value;
+                    return (
+                      <button
+                        key={option.value || 'all'}
+                        onClick={() =>
+                          applyFilters({
+                            condition: option.value || undefined,
+                          })
+                        }
+                        className={`flex-1 rounded-xl px-2 py-2 text-xs sm:text-sm transition whitespace-nowrap ${
+                          active
+                            ? 'bg-primary-500 text-white'
+                            : 'text-dark-textSecondary hover:text-dark-text'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2 px-3 py-2">
-                <input
-                  type="number"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))}
-                  placeholder="Мин"
-                  className="w-20 bg-transparent text-sm text-dark-text placeholder:text-neutral-500 focus:outline-none"
-                />
-                <span className="text-neutral-600">—</span>
-                <input
-                  type="number"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))}
-                  placeholder="Макс"
-                  className="w-20 bg-transparent text-sm text-dark-text placeholder:text-neutral-500 focus:outline-none"
-                />
-                <button
-                  onClick={handlePriceApply}
-                  className="rounded-xl bg-primary-500/20 px-3 py-1 text-xs font-semibold text-primary-300 transition hover:bg-primary-500/40"
-                >
-                  Применить
-                </button>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm text-dark-textSecondary">Цена</span>
+                <div className="flex items-center gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2 px-2 py-1.5">
+                  <input
+                    type="number"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))}
+                    placeholder="Мин"
+                    className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm text-dark-text placeholder:text-neutral-500 focus:outline-none"
+                  />
+                  <span className="text-neutral-600">—</span>
+                  <input
+                    type="number"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))}
+                    placeholder="Макс"
+                    className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm text-dark-text placeholder:text-neutral-500 focus:outline-none"
+                  />
+                  <button
+                    onClick={handlePriceApply}
+                    className="rounded-xl bg-primary-500/20 px-2 py-1.5 text-xs font-semibold text-primary-300 transition hover:bg-primary-500/40 whitespace-nowrap"
+                  >
+                    Применить
+                  </button>
+                </div>
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-dark-textSecondary">
-                Сортировка
+              <label className="flex flex-col gap-2 text-sm text-dark-textSecondary">
+                <span>Сортировка</span>
                 <select
                   value={initialFilters.sortBy === 'price' ? (initialFilters.sortOrder === 'asc' ? 'price-asc' : 'price-desc') : initialFilters.sortBy}
                   onChange={(e) => {
@@ -437,7 +444,7 @@ export default function HomePageClient({
                       });
                     }
                   }}
-                  className="rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
+                  className="w-full rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2.5 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -447,8 +454,8 @@ export default function HomePageClient({
                 </select>
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-dark-textSecondary">
-                Рейтинг продавца
+              <label className="flex flex-col gap-2 text-sm text-dark-textSecondary">
+                <span>Рейтинг продавца</span>
                 <select
                   value={initialFilters.minSellerRating || ''}
                   onChange={(e) =>
@@ -456,7 +463,7 @@ export default function HomePageClient({
                       minSellerRating: e.target.value || undefined,
                     })
                   }
-                  className="rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
+                  className="w-full rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2.5 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
                 >
                   <option value="">Любой</option>
                   <option value="1">1+ звезд</option>
@@ -467,8 +474,8 @@ export default function HomePageClient({
                 </select>
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-dark-textSecondary">
-                Рейтинг объявления
+              <label className="flex flex-col gap-2 text-sm text-dark-textSecondary">
+                <span>Рейтинг объявления</span>
                 <select
                   value={initialFilters.minAdRating || ''}
                   onChange={(e) =>
@@ -476,7 +483,7 @@ export default function HomePageClient({
                       minAdRating: e.target.value || undefined,
                     })
                   }
-                  className="rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
+                  className="w-full rounded-xl border border-neutral-800 bg-dark-bg2 px-3 py-2.5 text-sm text-dark-text focus:border-primary-500 focus:outline-none"
                 >
                   <option value="">Любой</option>
                   <option value="1">1+ звезд</option>
@@ -487,7 +494,6 @@ export default function HomePageClient({
                 </select>
               </label>
             </div>
-          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">

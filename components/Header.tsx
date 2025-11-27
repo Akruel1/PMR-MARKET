@@ -74,8 +74,10 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-dark-bg2/70 bg-[#080b12]/80 backdrop-blur-xl">
       <div className="container-custom flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
-        <div className="flex items-center justify-between gap-4">
-          <Logo />
+        <div className="flex items-center justify-between gap-4 md:items-center md:justify-start">
+          <div className="flex items-center">
+            <Logo />
+          </div>
           <div className="flex items-center gap-2 md:hidden">
             <button
               className="rounded-full border border-neutral-800 p-2 text-neutral-300"
@@ -177,40 +179,40 @@ export default function Header() {
                       className="fixed inset-0 z-[60] sm:bg-transparent bg-black/50"
                       onClick={() => setUserMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-full z-[70] mt-2 w-56 sm:w-56 max-w-[calc(100vw-1rem)] rounded-2xl border border-neutral-900 bg-[#05070f] p-2 sm:p-3 text-sm text-white shadow-xl sm:shadow-xl">
-                      <p className="px-2 sm:px-3 py-2 text-xs uppercase tracking-[0.3em] text-neutral-500">Account</p>
+                    <div className="fixed left-4 bottom-4 right-4 sm:absolute sm:right-0 sm:top-full sm:left-auto sm:bottom-auto sm:mt-2 sm:w-56 z-[70] max-w-[calc(100vw-2rem)] sm:max-w-none rounded-2xl border border-neutral-900 bg-[#05070f] p-4 sm:p-3 text-sm text-white shadow-xl">
+                      <p className="px-3 py-2 text-xs uppercase tracking-[0.3em] text-neutral-500">Account</p>
                       <Link
                         href="/profile"
-                        className="flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <User className="h-4 w-4 shrink-0" />
+                        <User className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
                         Профиль
                       </Link>
                       <Link
                         href="/favorites"
-                        className="flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <Heart className="h-4 w-4 shrink-0" />
+                        <Heart className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
                         Избранное
                       </Link>
                       <Link
                         href="/messages"
-                        className="relative flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
+                        className="relative flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <MessageCircle className="h-4 w-4 shrink-0" />
+                        <MessageCircle className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
                         Сообщения
                         <MessageNotificationBadge />
                       </Link>
                       {session.user.role === 'ADMIN' && (
                         <Link
                           href="/admin"
-                          className="flex items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
+                          className="flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2 text-sm text-neutral-300 hover:bg-dark-bg transition"
                           onClick={() => setUserMenuOpen(false)}
                         >
-                          <LayoutDashboard className="h-4 w-4 shrink-0" />
+                          <LayoutDashboard className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
                           Админ-панель
                         </Link>
                       )}
@@ -220,9 +222,9 @@ export default function Header() {
                           setUserMenuOpen(false);
                           signOut({ callbackUrl: '/' });
                         }}
-                        className="mt-2 flex w-full items-center gap-2 rounded-xl px-2 sm:px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition"
+                        className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-3 sm:py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition"
                       >
-                        <LogOut className="h-4 w-4 shrink-0" />
+                        <LogOut className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
                         Выйти
                       </button>
                     </div>

@@ -185,7 +185,7 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                     Цена зависит от времени нахождения объявления в VIP-статусе:
                   </p>
                   <ul className="list-disc list-inside space-y-1 ml-2 text-sm sm:text-base">
-                    <li>1 день — от 50 MDL</li>
+                    <li>1 день — от 50 RUB</li>
                     <li>3 дня — от 120 RUB</li>
                     <li>7 дней — от 250 RUB</li>
                     <li>30 дней — от 900 RUB</li>
