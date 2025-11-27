@@ -29,7 +29,7 @@ export default function StarRating({
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 sm:gap-1">
       <div className="flex items-center">
         {stars.map((star) => (
           <button
@@ -38,8 +38,9 @@ export default function StarRating({
             onClick={() => handleClick(star)}
             disabled={!interactive}
             className={`
-              ${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'}
+              ${interactive ? 'cursor-pointer hover:scale-110 active:scale-95' : 'cursor-default'}
               transition-transform duration-150
+              touch-manipulation
             `}
           >
             <Star
@@ -53,13 +54,14 @@ export default function StarRating({
         ))}
       </div>
       {showNumber && (
-        <span className="text-dark-textSecondary ml-1 text-sm">
+        <span className="text-dark-textSecondary ml-1 text-xs sm:text-sm">
           {rating.toFixed(1)}
         </span>
       )}
     </div>
   );
 }
+
 
 
 

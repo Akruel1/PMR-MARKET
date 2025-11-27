@@ -120,12 +120,12 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
     : 0;
 
   return (
-    <section className="rounded-[32px] border border-neutral-900 bg-[#05070f] p-8 shadow-[0_20px_45px_rgba(0,0,0,0.45)] space-y-6">
+    <section className="rounded-[32px] border border-neutral-900 bg-[#05070f] p-4 sm:p-6 md:p-8 shadow-[0_20px_45px_rgba(0,0,0,0.45)] space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">Reviews</p>
-          <h2 className="text-2xl font-semibold text-white flex items-center gap-2 mt-1">
-            <MessageSquare className="h-6 w-6 text-primary-400" />
+          <h2 className="text-xl sm:text-2xl font-semibold text-white flex items-center gap-2 mt-1">
+            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-primary-400" />
             Отзывы ({reviews.length})
           </h2>
         </div>
@@ -133,52 +133,52 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
 
       {/* Average Ratings */}
       {reviews.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 rounded-2xl border border-neutral-900 bg-[#0b101c] p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 rounded-2xl border border-neutral-900 bg-[#0b101c] p-4 sm:p-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">Средняя оценка объявления</p>
-            <StarRating rating={averageAdRating} showNumber size={24} />
+            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-2 sm:mb-3">Средняя оценка объявления</p>
+            <StarRating rating={averageAdRating} showNumber size={20} />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">Средняя оценка продавца</p>
-            <StarRating rating={averageSellerRating} showNumber size={24} />
+            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-2 sm:mb-3">Средняя оценка продавца</p>
+            <StarRating rating={averageSellerRating} showNumber size={20} />
           </div>
         </div>
       )}
 
       {/* Review Form */}
       {session?.user && session.user.id !== sellerId && (
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-neutral-900 bg-[#0b101c] p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-white">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-neutral-900 bg-[#0b101c] p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <h3 className="text-base sm:text-lg font-semibold text-white">
             {hasReviewed ? 'Обновить отзыв' : 'Оставить отзыв'}
           </h3>
           
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-3">
+              <label className="block text-sm font-medium text-neutral-400 mb-2 sm:mb-3">
                 Оценка объявления
               </label>
               <StarRating
                 rating={adRating}
                 interactive
                 onRatingChange={setAdRating}
-                size={28}
+                size={24}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-3">
+              <label className="block text-sm font-medium text-neutral-400 mb-2 sm:mb-3">
                 Оценка продавца
               </label>
               <StarRating
                 rating={sellerRating}
                 interactive
                 onRatingChange={setSellerRating}
-                size={28}
+                size={24}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-3">
+              <label className="block text-sm font-medium text-neutral-400 mb-2 sm:mb-3">
                 Комментарий (необязательно)
               </label>
               <textarea
@@ -186,7 +186,7 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Поделитесь своим мнением..."
                 rows={4}
-                className="w-full rounded-2xl border border-neutral-800 bg-dark-bg px-4 py-3 text-white placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none resize-none"
+                className="w-full rounded-2xl border border-neutral-800 bg-dark-bg px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none resize-none"
               />
             </div>
 
@@ -195,8 +195,8 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
               disabled={submitting || adRating === 0 || sellerRating === 0}
               className="w-full rounded-2xl bg-primary-500 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <Send className="h-4 w-4" />
-              {submitting ? 'Отправка...' : hasReviewed ? 'Обновить отзыв' : 'Отправить отзыв'}
+              <Send className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{submitting ? 'Отправка...' : hasReviewed ? 'Обновить отзыв' : 'Отправить отзыв'}</span>
             </button>
           </div>
         </form>
@@ -208,16 +208,16 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
       ) : reviews.length === 0 ? (
         <p className="text-neutral-500 text-center py-8">Пока нет отзывов</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="rounded-2xl border border-neutral-900 bg-[#0b101c] p-5 space-y-3"
+              className="rounded-2xl border border-neutral-900 bg-[#0b101c] p-4 sm:p-5 space-y-3"
             >
               <div className="flex items-start gap-3">
                 <a 
                   href={`/profile?userId=${review.reviewer.id}`}
-                  className="block hover:opacity-80 transition-opacity"
+                  className="block hover:opacity-80 transition-opacity flex-shrink-0"
                   title="Открыть профиль пользователя"
                 >
                   {review.reviewer.image ? (
@@ -234,15 +234,15 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
                     </div>
                   )}
                 </a>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <a 
                     href={`/profile?userId=${review.reviewer.id}`}
-                    className="font-semibold text-white hover:text-primary-400 transition-colors cursor-pointer"
+                    className="font-semibold text-white hover:text-primary-400 transition-colors cursor-pointer block truncate"
                     title="Открыть профиль пользователя"
                   >
                     {review.reviewer.name || 'Анонимный пользователь'}
                   </a>
-                  <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mt-1">
+                  <p className="text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-neutral-500 mt-1">
                     {new Date(review.createdAt).toLocaleDateString('ru-RU', {
                       day: 'numeric',
                       month: 'long',
@@ -252,19 +252,19 @@ export default function ReviewsSection({ adId, sellerId }: ReviewsSectionProps) 
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 sm:gap-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-neutral-500">Объявление:</span>
+                  <span className="text-neutral-500 text-xs sm:text-sm">Объявление:</span>
                   <StarRating rating={review.adRating} size={16} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-neutral-500">Продавец:</span>
+                  <span className="text-neutral-500 text-xs sm:text-sm">Продавец:</span>
                   <StarRating rating={review.sellerRating} size={16} />
                 </div>
               </div>
 
               {review.comment && (
-                <p className="text-sm text-neutral-300 leading-relaxed">{review.comment}</p>
+                <p className="text-sm text-neutral-300 leading-relaxed break-words">{review.comment}</p>
               )}
             </div>
           ))}
