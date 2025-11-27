@@ -539,7 +539,7 @@ function MessagesContent() {
                 )}
               </div>
 
-              <div className="p-4 border-t border-neutral-900 bg-[#080c16] space-y-3">
+              <div className="p-3 sm:p-4 pb-4 sm:pb-4 border-t border-neutral-900 bg-[#080c16] space-y-3">
                 {showVoiceRecorder ? (
                   <VoiceRecorder
                     onRecordingComplete={handleVoiceRecordingComplete}
@@ -551,29 +551,29 @@ function MessagesContent() {
                       e.preventDefault();
                       sendMessage();
                     }}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-2 sm:gap-3"
                   >
                     <button
                       type="button"
                       onClick={() => setShowVoiceRecorder(true)}
-                      className="flex-shrink-0 rounded-2xl border border-neutral-800 bg-[#0b101c] p-3 text-neutral-400 transition hover:border-primary-500 hover:text-primary-500"
+                      className="flex-shrink-0 rounded-2xl border border-neutral-800 bg-[#0b101c] p-2.5 sm:p-3 text-neutral-400 transition hover:border-primary-500 hover:text-primary-500"
                     >
-                      <Mic className="h-5 w-5" />
+                      <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                     <input
                       type="text"
                       value={messageText}
                       onChange={handleTyping}
                       placeholder="Написать сообщение..."
-                      className="flex-1 rounded-2xl border border-neutral-800 bg-[#0b101c] px-4 py-3 text-white placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none transition"
+                      className="flex-1 min-w-0 rounded-2xl border border-neutral-800 bg-[#0b101c] px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none transition"
                       disabled={sending}
                     />
                     <button
                       type="submit"
                       disabled={sending || !messageText.trim()}
-                      className="rounded-2xl bg-primary-500 p-3 text-white transition hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="flex-shrink-0 rounded-2xl bg-primary-500 p-2.5 sm:p-3 text-white transition hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                     >
-                      <Send className="h-5 w-5" />
+                      <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   </form>
                 )}
