@@ -73,11 +73,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-dark-bg2/70 bg-[#080b12]/80 backdrop-blur-xl">
-      <div className="container-custom flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
-        <div className="flex items-center justify-between gap-4 md:items-center md:justify-start">
-          <div className="flex items-center">
-            <Logo />
-          </div>
+      <div className="container-custom flex flex-col gap-3 py-4 md:flex-row md:items-center md:gap-6">
+        {/* Logo - всегда слева */}
+        <div className="flex items-center justify-between gap-4 md:justify-start md:flex-shrink-0">
+          <Logo />
           <div className="flex items-center gap-2 md:hidden">
             <button
               className="rounded-full border border-neutral-800 p-2 text-neutral-300"
@@ -88,7 +87,8 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
+        {/* Search bar - в центре на десктопе */}
+        <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:max-w-2xl">
           <div className="flex flex-1 flex-col gap-2 rounded-2xl border border-neutral-800 bg-dark-bg2/80 p-3 shadow-inner shadow-black/30 sm:flex-row sm:items-center sm:px-4 sm:py-2 sm:gap-0">
             <div className="flex flex-1 items-center">
               <Search className="mr-3 h-4 w-4 shrink-0 text-neutral-500" />
@@ -135,17 +135,19 @@ export default function Header() {
               )}
             </div>
           </div>
+        </div>
 
-          <div className="hidden items-center gap-2 text-sm text-dark-textSecondary md:flex">
+        {/* Navigation links and user profile - справа на десктопе */}
+        <div className="flex items-center justify-end gap-4 md:flex-shrink-0">
+          <div className="hidden items-center gap-3 text-sm text-dark-textSecondary md:flex">
             {LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="rounded-full px-3 py-1 transition hover:text-white">
+              <Link key={link.href} href={link.href} className="rounded-full px-3 py-1 transition hover:text-white whitespace-nowrap">
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-
+          <div className="flex items-center gap-2">
             {session?.user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -154,7 +156,7 @@ export default function Header() {
                     e.stopPropagation();
                     setUserMenuOpen((prev) => !prev);
                   }}
-                  className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500 px-2.5 py-2 text-sm text-white transition hover:border-blue-400 sm:justify-start sm:gap-3 sm:px-4 sm:py-2.5 sm:min-w-[200px]"
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500 px-2.5 py-2 text-sm text-white transition hover:border-blue-400 md:justify-start md:gap-3 md:px-4 md:py-2.5 md:min-w-[200px]"
                 >
                   {session.user.image ? (
                     <Image src={session.user.image} alt={session.user.name || 'User'} width={40} height={40} className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 rounded-full object-cover" />
@@ -163,7 +165,7 @@ export default function Header() {
                       {(session.user.name?.[0] || session.user.email?.[0] || 'u').toLowerCase()}
                     </div>
                   )}
-                  <div className="hidden flex-col items-start sm:flex">
+                  <div className="hidden flex-col items-start md:flex">
                     <span className="text-sm leading-tight truncate max-w-[150px]">{session.user.name || 'Profile'}</span>
                     {session.user.email && (
                       <>

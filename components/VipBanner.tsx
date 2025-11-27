@@ -64,7 +64,7 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
   return (
     <>
       <div className="relative mx-auto max-w-6xl px-4 mb-6 overflow-hidden">
-        <div className="relative h-32 rounded-2xl border-2 border-yellow-500/50 bg-gradient-to-r from-yellow-900/20 via-yellow-800/20 to-yellow-900/20 overflow-hidden">
+        <div className="relative h-28 sm:h-32 rounded-xl sm:rounded-2xl border-2 border-yellow-500/50 bg-gradient-to-r from-yellow-900/20 via-yellow-800/20 to-yellow-900/20 overflow-hidden">
           <div
             className="flex transition-transform duration-500 ease-in-out h-full"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -74,14 +74,14 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                 return (
                   <div
                     key="info"
-                    className="min-w-full flex items-center justify-center px-8 cursor-pointer"
+                    className="min-w-full flex items-center justify-center px-4 sm:px-8 cursor-pointer active:bg-yellow-900/10 transition"
                     onClick={() => setShowInfoModal(true)}
                   >
-                    <div className="flex items-center gap-4 text-white">
-                      <Crown className="h-8 w-8 text-yellow-400" />
-                      <div>
-                        <h3 className="text-lg font-bold">VIP объявления</h3>
-                        <p className="text-sm text-yellow-200">Нажмите, чтобы узнать, как сюда попасть</p>
+                    <div className="flex items-center gap-2 sm:gap-4 text-white">
+                      <Crown className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-400 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold truncate">VIP объявления</h3>
+                        <p className="text-xs sm:text-sm text-yellow-200 truncate">Нажмите, чтобы узнать, как сюда попасть</p>
                       </div>
                     </div>
                   </div>
@@ -96,30 +96,30 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
                 <Link
                   key={ad.id}
                   href={href}
-                  className="min-w-full flex items-center gap-6 px-8 hover:bg-yellow-900/10 transition"
+                  className="min-w-full flex items-center gap-3 sm:gap-6 px-4 sm:px-8 hover:bg-yellow-900/10 active:bg-yellow-900/20 transition"
                 >
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
+                  <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-lg sm:rounded-xl overflow-hidden flex-shrink-0">
                     <Image
                       src={coverImage}
                       alt={ad.title}
                       fill
                       className="object-cover"
                     />
-                    <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-yellow-500 text-black text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
                       VIP
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-white truncate">{ad.title}</h3>
-                    <p className="text-sm text-yellow-200 truncate">{ad.description}</p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-xl font-bold text-yellow-400">
+                    <h3 className="text-sm sm:text-lg font-semibold text-white truncate">{ad.title}</h3>
+                    <p className="text-xs sm:text-sm text-yellow-200 truncate hidden sm:block">{ad.description}</p>
+                    <div className="flex items-center gap-2 sm:gap-4 mt-1 sm:mt-2">
+                      <span className="text-base sm:text-xl font-bold text-yellow-400">
                         {formatPrice(Number(ad.price), ad.currency ?? 'USD')}
                       </span>
-                      <span className="text-sm text-neutral-300">{ad.city?.name || 'PMR'}</span>
+                      <span className="text-xs sm:text-sm text-neutral-300 truncate">{ad.city?.name || 'PMR'}</span>
                     </div>
                   </div>
-                  <Crown className="h-6 w-6 text-yellow-400 flex-shrink-0" />
+                  <Crown className="h-4 w-4 sm:h-6 sm:w-6 text-yellow-400 flex-shrink-0" />
                 </Link>
               );
             })}
@@ -127,16 +127,17 @@ export default function VipBanner({ vipAds }: VipBannerProps) {
 
           {/* Navigation dots */}
           {allItems.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 sm:gap-2">
               {allItems.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`h-2 rounded-full transition ${
+                  className={`h-1.5 sm:h-2 rounded-full transition ${
                     index === currentIndex
-                      ? 'w-8 bg-yellow-400'
-                      : 'w-2 bg-yellow-400/50'
+                      ? 'w-6 sm:w-8 bg-yellow-400'
+                      : 'w-1.5 sm:w-2 bg-yellow-400/50'
                   }`}
+                  aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
