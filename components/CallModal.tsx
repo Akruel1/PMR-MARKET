@@ -160,31 +160,31 @@ export default function CallModal({
         console.log('[CALL] Adding local track:', track.kind, 'enabled:', track.enabled, 'muted:', track.muted);
         // Ensure track is enabled
         track.enabled = true;
-        pc.addTrack(track, stream);
+        const sender = pc.addTrack(track, stream);
+        console.log('[CALL] Track sender created:', sender.track?.id, 'track enabled:', sender.track?.enabled, 'track muted:', sender.track?.muted);
+        
+        // Monitor track state changes
+        track.onmute = () => {
+          console.warn('[CALL] Local track was muted!', track.kind, track.id);
+        };
+        track.onunmute = () => {
+          console.log('[CALL] Local track was unmuted', track.kind, track.id);
+        };
       });
 
-      // Handle remote stream - collect all tracks into one stream
-      let remoteStream: MediaStream | null = null;
+      // Handle remote stream - use the stream from the event directly
       pc.ontrack = (event) => {
         console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled, event.streams);
+        console.log('[CALL] Event streams count:', event.streams.length);
         
-        // Create or reuse remote stream
-        if (!remoteStream) {
-          remoteStream = new MediaStream();
-          console.log('[CALL] Created new remote stream');
-        }
-        
-        // Check if track already exists in stream
-        const existingTracks = remoteStream.getTracks();
-        const trackExists = existingTracks.some(t => t.id === event.track.id);
-        
-        if (!trackExists) {
-          // Add track to the combined stream
-          remoteStream.addTrack(event.track);
-          console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
-        } else {
-          console.log('[CALL] Track already in stream, skipping');
-        }
+        // Use the stream from the event - it already contains the track
+        const remoteStream = event.streams[0];
+        console.log('[CALL] Using stream from event, tracks:', remoteStream.getTracks().map(t => ({ 
+          id: t.id, 
+          kind: t.kind, 
+          enabled: t.enabled, 
+          muted: t.muted 
+        })));
         
         // Ensure track is enabled and log track details
         event.track.enabled = true;
@@ -197,10 +197,19 @@ export default function CallModal({
         };
         console.log('[CALL] Track details:', trackDetails);
         
+        // Monitor track state changes
+        event.track.onmute = () => {
+          console.warn('[CALL] Remote track was muted!', event.track.kind, event.track.id);
+        };
+        event.track.onunmute = () => {
+          console.log('[CALL] Remote track was unmuted', event.track.kind, event.track.id);
+        };
+        
         // Warn if track is muted - this is the likely cause of no sound
         if (event.track.muted) {
           console.warn('[CALL] ⚠️ REMOTE TRACK IS MUTED! This is why there is no sound.');
           console.warn('[CALL] The remote user may have muted their microphone, or there is an issue with the track transmission.');
+          console.warn('[CALL] This might be a WebRTC bug - the track is marked as muted even though the sender did not mute it.');
         }
         
         // Set up audio element when we have audio track
@@ -407,31 +416,31 @@ export default function CallModal({
         console.log('[CALL] Adding local track:', track.kind, 'enabled:', track.enabled, 'muted:', track.muted);
         // Ensure track is enabled
         track.enabled = true;
-        pc.addTrack(track, stream);
+        const sender = pc.addTrack(track, stream);
+        console.log('[CALL] Track sender created:', sender.track?.id, 'track enabled:', sender.track?.enabled, 'track muted:', sender.track?.muted);
+        
+        // Monitor track state changes
+        track.onmute = () => {
+          console.warn('[CALL] Local track was muted!', track.kind, track.id);
+        };
+        track.onunmute = () => {
+          console.log('[CALL] Local track was unmuted', track.kind, track.id);
+        };
       });
 
-      // Handle remote stream - collect all tracks into one stream
-      let remoteStream: MediaStream | null = null;
+      // Handle remote stream - use the stream from the event directly
       pc.ontrack = (event) => {
         console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled, event.streams);
+        console.log('[CALL] Event streams count:', event.streams.length);
         
-        // Create or reuse remote stream
-        if (!remoteStream) {
-          remoteStream = new MediaStream();
-          console.log('[CALL] Created new remote stream');
-        }
-        
-        // Check if track already exists in stream
-        const existingTracks = remoteStream.getTracks();
-        const trackExists = existingTracks.some(t => t.id === event.track.id);
-        
-        if (!trackExists) {
-          // Add track to the combined stream
-          remoteStream.addTrack(event.track);
-          console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
-        } else {
-          console.log('[CALL] Track already in stream, skipping');
-        }
+        // Use the stream from the event - it already contains the track
+        const remoteStream = event.streams[0];
+        console.log('[CALL] Using stream from event, tracks:', remoteStream.getTracks().map(t => ({ 
+          id: t.id, 
+          kind: t.kind, 
+          enabled: t.enabled, 
+          muted: t.muted 
+        })));
         
         // Ensure track is enabled and log track details
         event.track.enabled = true;
@@ -444,10 +453,19 @@ export default function CallModal({
         };
         console.log('[CALL] Track details:', trackDetails);
         
+        // Monitor track state changes
+        event.track.onmute = () => {
+          console.warn('[CALL] Remote track was muted!', event.track.kind, event.track.id);
+        };
+        event.track.onunmute = () => {
+          console.log('[CALL] Remote track was unmuted', event.track.kind, event.track.id);
+        };
+        
         // Warn if track is muted - this is the likely cause of no sound
         if (event.track.muted) {
           console.warn('[CALL] ⚠️ REMOTE TRACK IS MUTED! This is why there is no sound.');
           console.warn('[CALL] The remote user may have muted their microphone, or there is an issue with the track transmission.');
+          console.warn('[CALL] This might be a WebRTC bug - the track is marked as muted even though the sender did not mute it.');
         }
         
         // Set up audio element when we have audio track
