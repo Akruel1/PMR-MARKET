@@ -1,0 +1,430 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, X } from 'lucide-react';
+import Image from 'next/image';
+
+interface CallModalProps {
+  isOpen: boolean;
+  isIncoming: boolean;
+  callerName?: string;
+  callerImage?: string;
+  onAccept?: () => void;
+  onReject: () => void;
+  onEnd: () => void;
+  otherUserId: string;
+  currentUserId: string;
+}
+
+export default function CallModal({
+  isOpen,
+  isIncoming,
+  callerName,
+  callerImage,
+  onAccept,
+  onReject,
+  onEnd,
+  otherUserId,
+  currentUserId,
+}: CallModalProps) {
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [callStatus, setCallStatus] = useState<'connecting' | 'connected' | 'ended'>('connecting');
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+
+  // STUN servers for WebRTC
+  const iceServers = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+    ],
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      cleanup();
+      return;
+    }
+
+    if (!isIncoming && callStatus === 'connecting') {
+      // Initiating call
+      startCall();
+    }
+
+    return () => {
+      if (!isOpen) {
+        cleanup();
+      }
+    };
+  }, [isOpen, isIncoming, callStatus]);
+
+  const startCall = async () => {
+    try {
+      // Get user media
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: isVideoEnabled,
+      });
+      
+      localStreamRef.current = stream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+
+      // Create peer connection
+      const pc = new RTCPeerConnection(iceServers);
+      peerConnectionRef.current = pc;
+
+      // Add local stream tracks
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+      });
+
+      // Handle remote stream
+      pc.ontrack = (event) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+        setCallStatus('connected');
+      };
+
+      // Create offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      // Send offer to other user via API
+      await fetch('/api/calls/signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'offer',
+          offer: offer,
+          fromUserId: currentUserId,
+          toUserId: otherUserId,
+        }),
+      });
+
+      // Handle ICE candidates
+      pc.onicecandidate = async (event) => {
+        if (event.candidate) {
+          await fetch('/api/calls/signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'ice-candidate',
+              candidate: event.candidate,
+              fromUserId: currentUserId,
+              toUserId: otherUserId,
+            }),
+          });
+        }
+      };
+
+      // Poll for answer
+      pollForAnswer(pc);
+    } catch (error) {
+      console.error('Error starting call:', error);
+      alert('Не удалось начать звонок. Убедитесь, что разрешён доступ к микрофону.');
+      onReject();
+    }
+  };
+
+  const pollForAnswer = async (pc: RTCPeerConnection) => {
+    const maxAttempts = 30;
+    let attempts = 0;
+
+    const poll = async () => {
+      if (attempts >= maxAttempts) {
+        alert('Звонок не был принят');
+        onReject();
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/calls/signal?fromUserId=${otherUserId}&toUserId=${currentUserId}&type=answer`
+        );
+        const data = await response.json();
+
+        if (data.answer) {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          setCallStatus('connected');
+        } else {
+          attempts++;
+          setTimeout(poll, 1000);
+        }
+      } catch (error) {
+        attempts++;
+        setTimeout(poll, 1000);
+      }
+    };
+
+    poll();
+  };
+
+  const handleAccept = async () => {
+    try {
+      // Get user media
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: isVideoEnabled,
+      });
+      
+      localStreamRef.current = stream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+
+      // Create peer connection
+      const pc = new RTCPeerConnection(iceServers);
+      peerConnectionRef.current = pc;
+
+      // Add local stream tracks
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+      });
+
+      // Handle remote stream
+      pc.ontrack = (event) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+        setCallStatus('connected');
+      };
+
+      // Get offer from API
+      const response = await fetch(
+        `/api/calls/signal?fromUserId=${otherUserId}&toUserId=${currentUserId}&type=offer`
+      );
+      const data = await response.json();
+
+      if (data.offer) {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+
+        // Create answer
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        // Send answer
+        await fetch('/api/calls/signal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'answer',
+            answer: answer,
+            fromUserId: currentUserId,
+            toUserId: otherUserId,
+          }),
+        });
+      }
+
+      // Handle ICE candidates
+      pc.onicecandidate = async (event) => {
+        if (event.candidate) {
+          await fetch('/api/calls/signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'ice-candidate',
+              candidate: event.candidate,
+              fromUserId: currentUserId,
+              toUserId: otherUserId,
+            }),
+          });
+        }
+      };
+
+      if (onAccept) {
+        onAccept();
+      }
+    } catch (error) {
+      console.error('Error accepting call:', error);
+      alert('Не удалось принять звонок. Убедитесь, что разрешён доступ к микрофону.');
+      onReject();
+    }
+  };
+
+  const toggleMute = () => {
+    if (localStreamRef.current) {
+      const audioTracks = localStreamRef.current.getAudioTracks();
+      audioTracks.forEach((track) => {
+        track.enabled = isMuted;
+      });
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleVideo = async () => {
+    if (localStreamRef.current) {
+      const videoTracks = localStreamRef.current.getVideoTracks();
+      videoTracks.forEach((track) => {
+        track.enabled = !isVideoEnabled;
+      });
+      setIsVideoEnabled(!isVideoEnabled);
+    } else if (!isVideoEnabled) {
+      // Start video if not already started
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: isMuted ? false : true,
+        });
+        localStreamRef.current = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+        setIsVideoEnabled(true);
+      } catch (error) {
+        console.error('Error enabling video:', error);
+      }
+    }
+  };
+
+  const cleanup = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+      localStreamRef.current = null;
+    }
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+    setIsMuted(false);
+    setIsVideoEnabled(false);
+    setCallStatus('connecting');
+  };
+
+  const handleEnd = () => {
+    cleanup();
+    onEnd();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+      <div className="relative w-full h-full max-w-4xl max-h-screen flex flex-col">
+        {/* Remote Video */}
+        <div className="flex-1 relative bg-neutral-900 rounded-t-2xl overflow-hidden">
+          {remoteVideoRef.current?.srcObject ? (
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              {callerImage ? (
+                <Image
+                  src={callerImage}
+                  alt={callerName || 'User'}
+                  width={200}
+                  height={200}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-48 h-48 rounded-full bg-primary-500/20 flex items-center justify-center">
+                  <span className="text-6xl text-primary-300">
+                    {(callerName || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Local Video (Picture-in-Picture) */}
+          {isVideoEnabled && localVideoRef.current?.srcObject && (
+            <div className="absolute top-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-white/50">
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
+          {/* Call Status */}
+          {callStatus === 'connecting' && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="text-center text-white">
+                <p className="text-xl mb-2">
+                  {isIncoming ? 'Входящий звонок...' : 'Соединение...'}
+                </p>
+                <p className="text-neutral-400">{callerName || 'Пользователь'}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div className="bg-[#0b101c] border-t border-neutral-900 p-6">
+          {isIncoming && callStatus === 'connecting' ? (
+            <div className="flex items-center justify-center gap-4">
+              <button
+                onClick={handleAccept}
+                className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center transition"
+              >
+                <Phone className="h-8 w-8 text-white" />
+              </button>
+              <button
+                onClick={onReject}
+                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition"
+              >
+                <PhoneOff className="h-8 w-8 text-white" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-4">
+              <button
+                onClick={toggleMute}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition ${
+                  isMuted
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-neutral-800 hover:bg-neutral-700'
+                }`}
+              >
+                {isMuted ? (
+                  <MicOff className="h-6 w-6 text-white" />
+                ) : (
+                  <Mic className="h-6 w-6 text-white" />
+                )}
+              </button>
+              <button
+                onClick={toggleVideo}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition ${
+                  isVideoEnabled
+                    ? 'bg-neutral-800 hover:bg-neutral-700'
+                    : 'bg-red-500 hover:bg-red-600'
+                }`}
+              >
+                {isVideoEnabled ? (
+                  <Video className="h-6 w-6 text-white" />
+                ) : (
+                  <VideoOff className="h-6 w-6 text-white" />
+                )}
+              </button>
+              <button
+                onClick={handleEnd}
+                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition"
+              >
+                <PhoneOff className="h-8 w-8 text-white" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+

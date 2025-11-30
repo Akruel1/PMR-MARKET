@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { Send, User, Clock, Circle, Mic, ArrowLeft } from 'lucide-react';
+import { Send, User, Clock, Circle, Mic, ArrowLeft, Phone } from 'lucide-react';
+import CallModal from '@/components/CallModal';
 import Image from 'next/image';
 import { formatDate } from '@/lib/utils';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -76,6 +77,8 @@ function MessagesContent() {
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showConversationsList, setShowConversationsList] = useState(true);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [isIncomingCall, setIsIncomingCall] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const loadConversations = useCallback(async () => {
@@ -259,6 +262,30 @@ function MessagesContent() {
     }
   }, [selectedConversation]);
 
+  // Check for incoming calls
+  useEffect(() => {
+    if (!selectedConversation || !session?.user?.id || isCallModalOpen) return;
+
+    const checkIncomingCalls = async () => {
+      try {
+        const response = await fetch(
+          `/api/calls/signal?fromUserId=${selectedConversation}&toUserId=${session.user.id}&type=offer`
+        );
+        const data = await response.json();
+        
+        if (data.offer && !isCallModalOpen) {
+          setIsIncomingCall(true);
+          setIsCallModalOpen(true);
+        }
+      } catch (error) {
+        // Silent fail
+      }
+    };
+
+    const interval = setInterval(checkIncomingCalls, 2000);
+    return () => clearInterval(interval);
+  }, [selectedConversation, session?.user?.id, isCallModalOpen]);
+
   const selectedUser = selectedUserFromConversations || newUserInfo;
 
   if (!session?.user) {
@@ -403,6 +430,16 @@ function MessagesContent() {
                     </div>
                   )}
                 </div>
+                <button
+                  onClick={() => {
+                    setIsCallModalOpen(true);
+                    setIsIncomingCall(false);
+                  }}
+                  className="flex-shrink-0 p-2 hover:bg-neutral-900 rounded-lg transition"
+                  title="Позвонить"
+                >
+                  <Phone className="h-5 w-5 text-primary-400" />
+                </button>
               </div>
 
               <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#0b101c] to-[#080c16]">
@@ -589,6 +626,27 @@ function MessagesContent() {
           )}
         </div>
       </div>
+
+      {/* Call Modal */}
+      {selectedConversation && selectedUser && session?.user && (
+        <CallModal
+          isOpen={isCallModalOpen}
+          isIncoming={isIncomingCall}
+          callerName={selectedUser.name || selectedUser.email || 'User'}
+          callerImage={selectedUser.image || undefined}
+          onAccept={() => setIsIncomingCall(false)}
+          onReject={() => {
+            setIsCallModalOpen(false);
+            setIsIncomingCall(false);
+          }}
+          onEnd={() => {
+            setIsCallModalOpen(false);
+            setIsIncomingCall(false);
+          }}
+          otherUserId={selectedConversation}
+          currentUserId={session.user.id}
+        />
+      )}
     </div>
   );
 }

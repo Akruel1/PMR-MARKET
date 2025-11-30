@@ -8,6 +8,7 @@ import { LocaleProvider } from '@/contexts/LocaleContext';
 import { Toaster } from 'react-hot-toast';
 import LicenseSync from '@/components/LicenseSync';
 import CSRFToken from '@/components/CSRFToken';
+import GlobalCallHandler from '@/components/GlobalCallHandler';
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Footer />
             </div>
             <Toaster position="top-right" />
+            <GlobalCallHandler />
           </LocaleProvider>
         </SessionProvider>
       </body>
