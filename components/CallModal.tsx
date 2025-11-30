@@ -127,8 +127,15 @@ export default function CallModal({
 
       // Handle remote stream
       pc.ontrack = (event) => {
+        console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = event.streams[0];
+          // Ensure audio is not muted
+          remoteVideoRef.current.muted = false;
+          // Ensure video element plays audio
+          if (event.track.kind === 'audio') {
+            event.track.enabled = true;
+          }
         }
         setCallStatus('connected');
       };
@@ -315,8 +322,15 @@ export default function CallModal({
 
       // Handle remote stream
       pc.ontrack = (event) => {
+        console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = event.streams[0];
+          // Ensure audio is not muted
+          remoteVideoRef.current.muted = false;
+          // Ensure video element plays audio
+          if (event.track.kind === 'audio') {
+            event.track.enabled = true;
+          }
         }
         setCallStatus('connected');
       };
@@ -472,7 +486,14 @@ export default function CallModal({
               autoPlay
               playsInline
               muted={false}
+              volume={1.0}
               className="w-full h-full object-cover"
+              onLoadedMetadata={() => {
+                if (remoteVideoRef.current) {
+                  remoteVideoRef.current.muted = false;
+                  remoteVideoRef.current.volume = 1.0;
+                }
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

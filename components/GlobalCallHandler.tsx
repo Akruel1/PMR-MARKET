@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import CallModal from './CallModal';
 
@@ -14,11 +14,11 @@ export default function GlobalCallHandler() {
   } | null>(null);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [isIncomingCall, setIsIncomingCall] = useState(false);
+  const lastCheckedCallIdRef = useRef<string | null>(null);
+  const hasNotifiedRejectRef = useRef(false);
 
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user?.id) return;
-
-    let lastCheckedCallId: string | null = null;
 
     const checkIncomingCalls = async () => {
       try {
@@ -34,8 +34,9 @@ export default function GlobalCallHandler() {
           const callId = `${latestCall.fromUserId}-${session.user.id}`;
           
           // Only show if it's a new call (different from last checked)
-          if (callId !== lastCheckedCallId) {
-            lastCheckedCallId = callId;
+          if (callId !== lastCheckedCallIdRef.current) {
+            lastCheckedCallIdRef.current = callId;
+            hasNotifiedRejectRef.current = false; // Reset reject notification flag
             setIncomingCall(latestCall);
             setIsIncomingCall(true);
             setIsCallModalOpen(true);
@@ -51,7 +52,8 @@ export default function GlobalCallHandler() {
             // }
           }
         } else if (calls.length === 0) {
-          lastCheckedCallId = null;
+          lastCheckedCallIdRef.current = null;
+          hasNotifiedRejectRef.current = false;
         }
       } catch (error) {
         // Silent fail
@@ -69,7 +71,8 @@ export default function GlobalCallHandler() {
   };
 
   const handleReject = async () => {
-    if (incomingCall && session?.user?.id) {
+    if (incomingCall && session?.user?.id && !hasNotifiedRejectRef.current) {
+      hasNotifiedRejectRef.current = true; // Prevent multiple notifications
       // Notify server that call was rejected
       // For incoming calls, we send as the receiver (toUserId is the caller)
       try {
@@ -90,6 +93,7 @@ export default function GlobalCallHandler() {
     setIsCallModalOpen(false);
     setIsIncomingCall(false);
     setIncomingCall(null);
+    lastCheckedCallIdRef.current = null;
   };
 
   const handleEnd = async () => {
@@ -113,6 +117,8 @@ export default function GlobalCallHandler() {
     setIsCallModalOpen(false);
     setIsIncomingCall(false);
     setIncomingCall(null);
+    lastCheckedCallIdRef.current = null;
+    hasNotifiedRejectRef.current = false;
   };
 
   if (!session?.user?.id || !incomingCall) return null;
