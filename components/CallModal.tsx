@@ -321,28 +321,42 @@ export default function CallModal({
             console.warn('[CALL] No audio tracks in stream!');
           }
           
-          // Try to play immediately and after delays
+          // Wait for ICE connection before trying to play
           const tryPlay = () => {
-            if (remoteAudioRef.current) {
+            if (remoteAudioRef.current && peerConnectionRef.current) {
+              const pc = peerConnectionRef.current;
               const tracks = remoteStream?.getAudioTracks() || [];
-              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState, 'tracks:', tracks.length);
-              remoteAudioRef.current.play().then(() => {
-                console.log('[CALL] Audio playing successfully, paused:', remoteAudioRef.current?.paused);
-                // Double check that it's actually playing
-                setTimeout(() => {
-                  if (remoteAudioRef.current) {
-                    console.log('[CALL] Audio state after play - paused:', remoteAudioRef.current.paused, 'ended:', remoteAudioRef.current.ended, 'currentTime:', remoteAudioRef.current.currentTime);
-                  }
-                }, 200);
-              }).catch(err => {
-                console.error('[CALL] Error playing remote audio:', err);
-              });
+              const iceState = pc.iceConnectionState;
+              const connState = pc.connectionState;
+              
+              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState, 'tracks:', tracks.length, 'track muted:', tracks[0]?.muted, 'ICE:', iceState, 'Connection:', connState);
+              
+              // Only try to play if ICE is connected or connecting
+              if (iceState === 'connected' || iceState === 'completed' || iceState === 'checking') {
+                remoteAudioRef.current.play().then(() => {
+                  console.log('[CALL] Audio playing successfully, paused:', remoteAudioRef.current?.paused);
+                  // Double check that it's actually playing
+                  setTimeout(() => {
+                    if (remoteAudioRef.current) {
+                      const currentTracks = (remoteAudioRef.current.srcObject as MediaStream)?.getAudioTracks() || [];
+                      console.log('[CALL] Audio state after play - paused:', remoteAudioRef.current.paused, 'ended:', remoteAudioRef.current.ended, 'currentTime:', remoteAudioRef.current.currentTime, 'track muted:', currentTracks[0]?.muted, 'ICE:', pc.iceConnectionState);
+                    }
+                  }, 500);
+                }).catch(err => {
+                  console.error('[CALL] Error playing remote audio:', err);
+                });
+              } else {
+                console.log('[CALL] Waiting for ICE connection before playing (current state:', iceState, ')');
+              }
             }
           };
           
+          // Try to play immediately and after delays
           tryPlay();
           setTimeout(tryPlay, 100);
           setTimeout(tryPlay, 500);
+          setTimeout(tryPlay, 1000);
+          setTimeout(tryPlay, 2000);
         }
         
         // Set up video element when we have video track
@@ -625,28 +639,42 @@ export default function CallModal({
             console.warn('[CALL] No audio tracks in stream!');
           }
           
-          // Try to play immediately and after delays
+          // Wait for ICE connection before trying to play
           const tryPlay = () => {
-            if (remoteAudioRef.current) {
+            if (remoteAudioRef.current && peerConnectionRef.current) {
+              const pc = peerConnectionRef.current;
               const tracks = remoteStream?.getAudioTracks() || [];
-              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState, 'tracks:', tracks.length);
-              remoteAudioRef.current.play().then(() => {
-                console.log('[CALL] Audio playing successfully, paused:', remoteAudioRef.current?.paused);
-                // Double check that it's actually playing
-                setTimeout(() => {
-                  if (remoteAudioRef.current) {
-                    console.log('[CALL] Audio state after play - paused:', remoteAudioRef.current.paused, 'ended:', remoteAudioRef.current.ended, 'currentTime:', remoteAudioRef.current.currentTime);
-                  }
-                }, 200);
-              }).catch(err => {
-                console.error('[CALL] Error playing remote audio:', err);
-              });
+              const iceState = pc.iceConnectionState;
+              const connState = pc.connectionState;
+              
+              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState, 'tracks:', tracks.length, 'track muted:', tracks[0]?.muted, 'ICE:', iceState, 'Connection:', connState);
+              
+              // Only try to play if ICE is connected or connecting
+              if (iceState === 'connected' || iceState === 'completed' || iceState === 'checking') {
+                remoteAudioRef.current.play().then(() => {
+                  console.log('[CALL] Audio playing successfully, paused:', remoteAudioRef.current?.paused);
+                  // Double check that it's actually playing
+                  setTimeout(() => {
+                    if (remoteAudioRef.current) {
+                      const currentTracks = (remoteAudioRef.current.srcObject as MediaStream)?.getAudioTracks() || [];
+                      console.log('[CALL] Audio state after play - paused:', remoteAudioRef.current.paused, 'ended:', remoteAudioRef.current.ended, 'currentTime:', remoteAudioRef.current.currentTime, 'track muted:', currentTracks[0]?.muted, 'ICE:', pc.iceConnectionState);
+                    }
+                  }, 500);
+                }).catch(err => {
+                  console.error('[CALL] Error playing remote audio:', err);
+                });
+              } else {
+                console.log('[CALL] Waiting for ICE connection before playing (current state:', iceState, ')');
+              }
             }
           };
           
+          // Try to play immediately and after delays
           tryPlay();
           setTimeout(tryPlay, 100);
           setTimeout(tryPlay, 500);
+          setTimeout(tryPlay, 1000);
+          setTimeout(tryPlay, 2000);
         }
         
         // Set up video element when we have video track
