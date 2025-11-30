@@ -46,22 +46,46 @@ export default function CallModal({
 
   const startCall = useCallback(async () => {
     try {
+      console.log('[CALL] Starting call...');
+      
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('[CALL] MediaDevices not supported');
         throw new Error('MediaDevicesNotSupported');
       }
 
       // Check if we're on HTTPS or localhost (required for WebRTC)
       const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      console.log('[CALL] Protocol:', window.location.protocol, 'Secure:', isSecure);
       if (!isSecure) {
+        console.error('[CALL] HTTPS required');
         throw new Error('HTTPSRequired');
       }
 
+      // Check permissions first (if available)
+      try {
+        if (navigator.permissions) {
+          const micPermission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          console.log('[CALL] Microphone permission:', micPermission.state);
+          console.log('[CALL] Camera permission:', cameraPermission.state);
+          
+          if (micPermission.state === 'denied' || cameraPermission.state === 'denied') {
+            throw new Error('PermissionDeniedError');
+          }
+        }
+      } catch (permError) {
+        // Permissions API might not be available, continue anyway
+        console.log('[CALL] Permissions API not available, continuing...');
+      }
+
+      console.log('[CALL] Requesting user media...');
       // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: isVideoEnabled,
       });
+      console.log('[CALL] User media obtained successfully');
       
       localStreamRef.current = stream;
       if (localVideoRef.current) {
@@ -86,11 +110,13 @@ export default function CallModal({
       };
 
       // Create offer
+      console.log('[CALL] Creating offer...');
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
+      console.log('[CALL] Offer created, sending to server...');
 
       // Send offer to other user via API
-      await fetch('/api/calls/signal', {
+      const response = await fetch('/api/calls/signal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -100,6 +126,11 @@ export default function CallModal({
           toUserId: otherUserId,
         }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to send offer: ${response.status}`);
+      }
+      console.log('[CALL] Offer sent successfully');
 
       // Handle ICE candidates
       pc.onicecandidate = async (event) => {
@@ -120,14 +151,18 @@ export default function CallModal({
       // Poll for answer
       pollForAnswer(pc);
     } catch (error: any) {
-      console.error('Error starting call:', error);
+      console.error('[CALL] Error starting call:', error);
+      console.error('[CALL] Error name:', error.name);
+      console.error('[CALL] Error message:', error.message);
+      console.error('[CALL] Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      
       let errorMsg = 'Не удалось начать звонок.';
       
       if (error.message === 'MediaDevicesNotSupported') {
         errorMsg = 'Ваш браузер не поддерживает доступ к камере и микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge).';
       } else if (error.message === 'HTTPSRequired') {
         errorMsg = 'Для работы звонков требуется безопасное соединение (HTTPS). Пожалуйста, используйте HTTPS для доступа к сайту.';
-      } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError' || error.message === 'PermissionDeniedError') {
         errorMsg = 'Доступ к камере и микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера или обратитесь к системному администратору.';
       } else if (error.name === 'NotFoundError') {
         errorMsg = 'Камера или микрофон не найдены. Убедитесь, что устройства подключены.';
@@ -136,9 +171,10 @@ export default function CallModal({
       } else if (error.name === 'OverconstrainedError') {
         errorMsg = 'Запрошенные параметры камеры или микрофона не поддерживаются.';
       } else {
-        errorMsg = 'Не удалось начать звонок. Убедитесь, что разрешён доступ к микрофону и камере.';
+        errorMsg = `Не удалось начать звонок. ${error.message || 'Убедитесь, что разрешён доступ к микрофону и камере.'}`;
       }
       
+      console.log('[CALL] Setting error message:', errorMsg);
       setErrorMessage(errorMsg);
       setCallStatus('ended');
     }
@@ -419,16 +455,42 @@ export default function CallModal({
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-              <div className="text-center text-white max-w-md mx-4 p-6 bg-[#0b101c] rounded-2xl border border-red-500/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-50">
+              <div className="text-center text-white max-w-md mx-4 p-6 bg-[#0b101c] rounded-2xl border-2 border-red-500/50 shadow-2xl">
                 <p className="text-xl font-semibold mb-3 text-red-400">Ошибка доступа</p>
-                <p className="text-sm text-neutral-300 mb-4">{errorMessage}</p>
-                <button
-                  onClick={onReject}
-                  className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
-                >
-                  Закрыть
-                </button>
+                <p className="text-sm text-neutral-300 mb-6 leading-relaxed">{errorMessage}</p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => {
+                      setErrorMessage(null);
+                      setCallStatus('connecting');
+                      onReject();
+                    }}
+                    className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition font-medium"
+                  >
+                    Закрыть
+                  </button>
+                  {errorMessage.includes('запрещён') && (
+                    <button
+                      onClick={async () => {
+                        setErrorMessage(null);
+                        setCallStatus('connecting');
+                        // Try to request permissions again
+                        try {
+                          await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                          // If successful, try starting call again
+                          startCall();
+                        } catch (e) {
+                          setErrorMessage('Не удалось получить доступ. Пожалуйста, разрешите доступ в настройках браузера.');
+                          setCallStatus('ended');
+                        }
+                      }}
+                      className="px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition font-medium"
+                    >
+                      Попробовать снова
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
