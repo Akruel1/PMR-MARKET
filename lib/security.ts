@@ -49,7 +49,8 @@ export function setSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Permissions Policy - разрешаем микрофон и камеру для звонков
+  response.headers.set('Permissions-Policy', 'microphone=(self "*"), camera=(self "*"), geolocation=()');
   
   // HSTS (только для HTTPS)
   if (process.env.NODE_ENV === 'production') {

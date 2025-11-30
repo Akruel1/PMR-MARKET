@@ -431,9 +431,32 @@ function MessagesContent() {
                   )}
                 </div>
                 <button
-                  onClick={() => {
-                    setIsCallModalOpen(true);
-                    setIsIncomingCall(false);
+                  onClick={async () => {
+                    try {
+                      // Request permissions first
+                      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        console.log('[CALL] Requesting permissions before opening call modal...');
+                        try {
+                          // Request microphone permission first
+                          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                          // Stop the stream immediately, we just needed permission
+                          stream.getTracks().forEach(track => track.stop());
+                          console.log('[CALL] Permissions granted, opening call modal');
+                        } catch (permError: any) {
+                          console.error('[CALL] Permission error:', permError);
+                          if (permError.name === 'NotAllowedError' || permError.name === 'PermissionDeniedError') {
+                            toast.error('Доступ к микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера (иконка замка в адресной строке).');
+                            return;
+                          }
+                          throw permError;
+                        }
+                      }
+                      setIsCallModalOpen(true);
+                      setIsIncomingCall(false);
+                    } catch (error: any) {
+                      console.error('[CALL] Error requesting permissions:', error);
+                      toast.error('Не удалось запросить разрешения. Проверьте настройки браузера.');
+                    }
                   }}
                   className="flex-shrink-0 p-2 hover:bg-neutral-900 rounded-lg transition"
                   title="Позвонить"

@@ -59,7 +59,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('ngrok-skip-browser-warning', 'true');
   }
 
-  // Установка безопасных заголовков
+  // Установка безопасных заголовков (включая Permissions Policy)
   setSecurityHeaders(response);
 
   // Set cookies for session management and preferences

@@ -36,7 +36,22 @@ export default function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRe
 
   const startRecording = async () => {
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error('Ваш браузер не поддерживает запись аудио. Используйте современный браузер.');
+        return;
+      }
+
+      // Check if we're on HTTPS or localhost
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isSecure) {
+        toast.error('Для записи требуется безопасное соединение (HTTPS).');
+        return;
+      }
+
+      console.log('[VOICE] Requesting microphone access...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('[VOICE] Microphone access granted');
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus',
       });
@@ -65,9 +80,21 @@ export default function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRe
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      toast.error('Не удалось начать запись. Проверьте разрешения микрофона.');
+    } catch (error: any) {
+      console.error('[VOICE] Error starting recording:', error);
+      let errorMsg = 'Не удалось начать запись.';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMsg = 'Доступ к микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера (иконка замка в адресной строке) или обратитесь к системному администратору.';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = 'Микрофон не найден. Убедитесь, что устройство подключено.';
+      } else if (error.name === 'NotReadableError') {
+        errorMsg = 'Микрофон занят другим приложением. Закройте другие приложения, использующие микрофон.';
+      } else if (error.message?.includes('Permissions policy violation')) {
+        errorMsg = 'Доступ к микрофону запрещён политикой безопасности. Обратитесь к системному администратору.';
+      }
+      
+      toast.error(errorMsg);
     }
   };
 
