@@ -68,6 +68,40 @@ export default function CallModal({
     }
   }, [currentUserId, otherUserId]);
 
+  const pollForAnswer = useCallback(async (pc: RTCPeerConnection) => {
+    const maxAttempts = 30;
+    let attempts = 0;
+
+    const poll = async () => {
+      if (attempts >= maxAttempts) {
+        alert('Звонок не был принят');
+        await notifyCallEnd('reject');
+        onReject();
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/calls/signal?fromUserId=${otherUserId}&toUserId=${currentUserId}&type=answer`
+        );
+        const data = await response.json();
+
+        if (data.answer) {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          setCallStatus('connected');
+        } else {
+          attempts++;
+          setTimeout(poll, 1000);
+        }
+      } catch (error) {
+        attempts++;
+        setTimeout(poll, 1000);
+      }
+    };
+
+    poll();
+  }, [otherUserId, currentUserId, notifyCallEnd, onReject]);
+
   const startCall = useCallback(async () => {
     try {
       console.log('[CALL] Starting call...');
@@ -224,7 +258,7 @@ export default function CallModal({
         console.error('[CALL] Error notifying call rejection:', err);
       }
     }
-  }, [isVideoEnabled, currentUserId, otherUserId, onReject]);
+  }, [isVideoEnabled, currentUserId, otherUserId, onReject, pollForAnswer, notifyCallEnd]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -253,39 +287,6 @@ export default function CallModal({
     };
   }, [isOpen, isIncoming, callStatus, startCall, notifyCallEnd]);
 
-  const pollForAnswer = async (pc: RTCPeerConnection) => {
-    const maxAttempts = 30;
-    let attempts = 0;
-
-    const poll = async () => {
-      if (attempts >= maxAttempts) {
-        alert('Звонок не был принят');
-        await notifyCallEnd('reject');
-        onReject();
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `/api/calls/signal?fromUserId=${otherUserId}&toUserId=${currentUserId}&type=answer`
-        );
-        const data = await response.json();
-
-        if (data.answer) {
-          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-          setCallStatus('connected');
-        } else {
-          attempts++;
-          setTimeout(poll, 1000);
-        }
-      } catch (error) {
-        attempts++;
-        setTimeout(poll, 1000);
-      }
-    };
-
-    poll();
-  };
 
   const handleAccept = async () => {
     try {
@@ -486,7 +487,6 @@ export default function CallModal({
               autoPlay
               playsInline
               muted={false}
-              volume={1.0}
               className="w-full h-full object-cover"
               onLoadedMetadata={() => {
                 if (remoteVideoRef.current) {
