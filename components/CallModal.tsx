@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -43,25 +43,7 @@ export default function CallModal({
     ],
   };
 
-  useEffect(() => {
-    if (!isOpen) {
-      cleanup();
-      return;
-    }
-
-    if (!isIncoming && callStatus === 'connecting') {
-      // Initiating call
-      startCall();
-    }
-
-    return () => {
-      if (!isOpen) {
-        cleanup();
-      }
-    };
-  }, [isOpen, isIncoming, callStatus]);
-
-  const startCall = async () => {
+  const startCall = useCallback(async () => {
     try {
       // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -130,7 +112,25 @@ export default function CallModal({
       alert('Не удалось начать звонок. Убедитесь, что разрешён доступ к микрофону.');
       onReject();
     }
-  };
+  }, [isVideoEnabled, currentUserId, otherUserId, onReject]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      cleanup();
+      return;
+    }
+
+    if (!isIncoming && callStatus === 'connecting') {
+      // Initiating call
+      startCall();
+    }
+
+    return () => {
+      if (!isOpen) {
+        cleanup();
+      }
+    };
+  }, [isOpen, isIncoming, callStatus, startCall]);
 
   const pollForAnswer = async (pc: RTCPeerConnection) => {
     const maxAttempts = 30;
