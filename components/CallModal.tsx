@@ -171,26 +171,65 @@ export default function CallModal({
           console.log('[CALL] Created new remote stream');
         }
         
-        // Add track to the combined stream
-        remoteStream.addTrack(event.track);
-        console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
+        // Check if track already exists in stream
+        const existingTracks = remoteStream.getTracks();
+        const trackExists = existingTracks.some(t => t.id === event.track.id);
         
-        // Ensure track is enabled
+        if (!trackExists) {
+          // Add track to the combined stream
+          remoteStream.addTrack(event.track);
+          console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
+        } else {
+          console.log('[CALL] Track already in stream, skipping');
+        }
+        
+        // Ensure track is enabled and log track details
         event.track.enabled = true;
+        console.log('[CALL] Track details:', {
+          id: event.track.id,
+          label: event.track.label,
+          readyState: event.track.readyState,
+          muted: event.track.muted,
+          settings: event.track.getSettings ? event.track.getSettings() : 'N/A'
+        });
         
         // Set up audio element when we have audio track
         if (event.track.kind === 'audio' && remoteAudioRef.current && remoteStream) {
           console.log('[CALL] Setting up audio element with combined stream');
-          remoteAudioRef.current.srcObject = remoteStream;
+          const audioTracks = remoteStream.getAudioTracks();
+          console.log('[CALL] Stream audio tracks:', audioTracks.map(t => ({ 
+            id: t.id, 
+            enabled: t.enabled, 
+            readyState: t.readyState,
+            muted: t.muted,
+            label: t.label
+          })));
+          
+          // Only set srcObject if it's different to avoid interrupting playback
+          if (remoteAudioRef.current.srcObject !== remoteStream) {
+            remoteAudioRef.current.srcObject = remoteStream;
+          }
           remoteAudioRef.current.muted = false;
           remoteAudioRef.current.volume = 1.0;
+          
+          // Check if audio element actually has audio tracks
+          if (audioTracks.length === 0) {
+            console.warn('[CALL] No audio tracks in stream!');
+          }
           
           // Try to play immediately and after delays
           const tryPlay = () => {
             if (remoteAudioRef.current) {
-              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState);
+              const tracks = remoteStream?.getAudioTracks() || [];
+              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState, 'tracks:', tracks.length);
               remoteAudioRef.current.play().then(() => {
-                console.log('[CALL] Audio playing successfully');
+                console.log('[CALL] Audio playing successfully, paused:', remoteAudioRef.current?.paused);
+                // Double check that it's actually playing
+                setTimeout(() => {
+                  if (remoteAudioRef.current) {
+                    console.log('[CALL] Audio state after play - paused:', remoteAudioRef.current.paused, 'ended:', remoteAudioRef.current.ended, 'currentTime:', remoteAudioRef.current.currentTime);
+                  }
+                }, 200);
               }).catch(err => {
                 console.error('[CALL] Error playing remote audio:', err);
               });
@@ -369,26 +408,65 @@ export default function CallModal({
           console.log('[CALL] Created new remote stream');
         }
         
-        // Add track to the combined stream
-        remoteStream.addTrack(event.track);
-        console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
+        // Check if track already exists in stream
+        const existingTracks = remoteStream.getTracks();
+        const trackExists = existingTracks.some(t => t.id === event.track.id);
         
-        // Ensure track is enabled
+        if (!trackExists) {
+          // Add track to the combined stream
+          remoteStream.addTrack(event.track);
+          console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
+        } else {
+          console.log('[CALL] Track already in stream, skipping');
+        }
+        
+        // Ensure track is enabled and log track details
         event.track.enabled = true;
+        console.log('[CALL] Track details:', {
+          id: event.track.id,
+          label: event.track.label,
+          readyState: event.track.readyState,
+          muted: event.track.muted,
+          settings: event.track.getSettings ? event.track.getSettings() : 'N/A'
+        });
         
         // Set up audio element when we have audio track
         if (event.track.kind === 'audio' && remoteAudioRef.current && remoteStream) {
           console.log('[CALL] Setting up audio element with combined stream');
-          remoteAudioRef.current.srcObject = remoteStream;
+          const audioTracks = remoteStream.getAudioTracks();
+          console.log('[CALL] Stream audio tracks:', audioTracks.map(t => ({ 
+            id: t.id, 
+            enabled: t.enabled, 
+            readyState: t.readyState,
+            muted: t.muted,
+            label: t.label
+          })));
+          
+          // Only set srcObject if it's different to avoid interrupting playback
+          if (remoteAudioRef.current.srcObject !== remoteStream) {
+            remoteAudioRef.current.srcObject = remoteStream;
+          }
           remoteAudioRef.current.muted = false;
           remoteAudioRef.current.volume = 1.0;
+          
+          // Check if audio element actually has audio tracks
+          if (audioTracks.length === 0) {
+            console.warn('[CALL] No audio tracks in stream!');
+          }
           
           // Try to play immediately and after delays
           const tryPlay = () => {
             if (remoteAudioRef.current) {
-              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState);
+              const tracks = remoteStream?.getAudioTracks() || [];
+              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState, 'tracks:', tracks.length);
               remoteAudioRef.current.play().then(() => {
-                console.log('[CALL] Audio playing successfully');
+                console.log('[CALL] Audio playing successfully, paused:', remoteAudioRef.current?.paused);
+                // Double check that it's actually playing
+                setTimeout(() => {
+                  if (remoteAudioRef.current) {
+                    console.log('[CALL] Audio state after play - paused:', remoteAudioRef.current.paused, 'ended:', remoteAudioRef.current.ended, 'currentTime:', remoteAudioRef.current.currentTime);
+                  }
+                }, 200);
               }).catch(err => {
                 console.error('[CALL] Error playing remote audio:', err);
               });
