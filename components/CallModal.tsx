@@ -30,6 +30,7 @@ export default function CallModal({
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [callStatus, setCallStatus] = useState<'connecting' | 'connected' | 'ended'>('connecting');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -107,10 +108,24 @@ export default function CallModal({
 
       // Poll for answer
       pollForAnswer(pc);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting call:', error);
-      alert('Не удалось начать звонок. Убедитесь, что разрешён доступ к микрофону.');
-      onReject();
+      let errorMsg = 'Не удалось начать звонок.';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMsg = 'Доступ к камере и микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера или обратитесь к системному администратору.';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = 'Камера или микрофон не найдены. Убедитесь, что устройства подключены.';
+      } else if (error.name === 'NotReadableError') {
+        errorMsg = 'Камера или микрофон заняты другим приложением. Закройте другие приложения, использующие эти устройства.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMsg = 'Запрошенные параметры камеры или микрофона не поддерживаются.';
+      } else {
+        errorMsg = 'Не удалось начать звонок. Убедитесь, что разрешён доступ к микрофону и камере.';
+      }
+      
+      setErrorMessage(errorMsg);
+      setCallStatus('ended');
     }
   }, [isVideoEnabled, currentUserId, otherUserId, onReject]);
 
@@ -119,6 +134,9 @@ export default function CallModal({
       cleanup();
       return;
     }
+
+    // Reset error when modal opens
+    setErrorMessage(null);
 
     if (!isIncoming && callStatus === 'connecting') {
       // Initiating call
@@ -240,10 +258,24 @@ export default function CallModal({
       if (onAccept) {
         onAccept();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accepting call:', error);
-      alert('Не удалось принять звонок. Убедитесь, что разрешён доступ к микрофону.');
-      onReject();
+      let errorMsg = 'Не удалось принять звонок.';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMsg = 'Доступ к камере и микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера или обратитесь к системному администратору.';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = 'Камера или микрофон не найдены. Убедитесь, что устройства подключены.';
+      } else if (error.name === 'NotReadableError') {
+        errorMsg = 'Камера или микрофон заняты другим приложением. Закройте другие приложения, использующие эти устройства.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMsg = 'Запрошенные параметры камеры или микрофона не поддерживаются.';
+      } else {
+        errorMsg = 'Не удалось принять звонок. Убедитесь, что разрешён доступ к микрофону и камере.';
+      }
+      
+      setErrorMessage(errorMsg);
+      setCallStatus('ended');
     }
   };
 
@@ -300,6 +332,7 @@ export default function CallModal({
     setIsMuted(false);
     setIsVideoEnabled(false);
     setCallStatus('connecting');
+    setErrorMessage(null);
   };
 
   const handleEnd = () => {
@@ -354,8 +387,24 @@ export default function CallModal({
             </div>
           )}
 
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+              <div className="text-center text-white max-w-md mx-4 p-6 bg-[#0b101c] rounded-2xl border border-red-500/50">
+                <p className="text-xl font-semibold mb-3 text-red-400">Ошибка доступа</p>
+                <p className="text-sm text-neutral-300 mb-4">{errorMessage}</p>
+                <button
+                  onClick={onReject}
+                  className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
+                >
+                  Закрыть
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Call Status */}
-          {callStatus === 'connecting' && (
+          {callStatus === 'connecting' && !errorMessage && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
               <div className="text-center text-white">
                 <p className="text-xl mb-2">
