@@ -162,8 +162,8 @@ export default function CallModal({
         errorMsg = 'Ваш браузер не поддерживает доступ к камере и микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge).';
       } else if (error.message === 'HTTPSRequired') {
         errorMsg = 'Для работы звонков требуется безопасное соединение (HTTPS). Пожалуйста, используйте HTTPS для доступа к сайту.';
-      } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError' || error.message === 'PermissionDeniedError') {
-        errorMsg = 'Доступ к камере и микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера или обратитесь к системному администратору.';
+      } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError' || error.message === 'PermissionDeniedError' || error.message?.includes('Permissions policy violation')) {
+        errorMsg = 'Доступ к камере и микрофону запрещён политикой безопасности. Пожалуйста, разрешите доступ в настройках браузера (иконка замка в адресной строке) или обратитесь к системному администратору.';
       } else if (error.name === 'NotFoundError') {
         errorMsg = 'Камера или микрофон не найдены. Убедитесь, что устройства подключены.';
       } else if (error.name === 'NotReadableError') {
