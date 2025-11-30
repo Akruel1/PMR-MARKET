@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
-import { callSignals, getCallKey } from '@/lib/callSignals';
+import { callSignals, getCallKey, removeCallSignal } from '@/lib/callSignals';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,11 +13,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { type, offer, answer, candidate, fromUserId, toUserId } = body;
 
-    if (fromUserId !== session.user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const callKey = getCallKey(fromUserId, toUserId);
+
+    // For end-call and reject, allow both users to send the signal
+    if (type === 'end-call' || type === 'reject') {
+      if (fromUserId !== session.user.id && toUserId !== session.user.id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    } else {
+      // For other types, only the caller can send
+      if (fromUserId !== session.user.id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
 
     if (type === 'offer') {
       console.log(`[CALL] Offer received from ${fromUserId} to ${toUserId}`);
@@ -55,6 +63,15 @@ export async function POST(request: NextRequest) {
           timestamp: Date.now(),
         });
       }
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'end-call' || type === 'reject') {
+      console.log(`[CALL] Call ended/rejected. User ${session.user.id} ending call between ${fromUserId} and ${toUserId}`);
+      // Remove the call signal to stop notifications
+      // Remove in both directions to handle any call direction
+      removeCallSignal(fromUserId, toUserId);
+      removeCallSignal(toUserId, fromUserId);
       return NextResponse.json({ success: true });
     }
 

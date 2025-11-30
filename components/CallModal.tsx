@@ -31,6 +31,7 @@ export default function CallModal({
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [callStatus, setCallStatus] = useState<'connecting' | 'connected' | 'ended'>('connecting');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const callEndedRef = useRef(false); // Track if call end was already notified
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -43,6 +44,29 @@ export default function CallModal({
       { urls: 'stun:stun1.l.google.com:19302' },
     ],
   };
+
+  const notifyCallEnd = useCallback(async (type: 'end-call' | 'reject' = 'end-call') => {
+    if (callEndedRef.current) {
+      console.log('[CALL] Call end already notified, skipping');
+      return;
+    }
+    
+    try {
+      await fetch('/api/calls/signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: type,
+          fromUserId: currentUserId,
+          toUserId: otherUserId,
+        }),
+      });
+      callEndedRef.current = true;
+      console.log(`[CALL] Notified server about ${type}`);
+    } catch (error) {
+      console.error(`[CALL] Error notifying ${type}:`, error);
+    }
+  }, [currentUserId, otherUserId]);
 
   const startCall = useCallback(async () => {
     try {
@@ -177,17 +201,38 @@ export default function CallModal({
       console.log('[CALL] Setting error message:', errorMsg);
       setErrorMessage(errorMsg);
       setCallStatus('ended');
+      
+      // Notify server that call failed
+      try {
+        await fetch('/api/calls/signal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'reject',
+            fromUserId: currentUserId,
+            toUserId: otherUserId,
+          }),
+        });
+      } catch (err) {
+        console.error('[CALL] Error notifying call rejection:', err);
+      }
     }
   }, [isVideoEnabled, currentUserId, otherUserId, onReject]);
 
   useEffect(() => {
     if (!isOpen) {
+      // If modal is closed and call was not connected, notify server
+      if (callStatus !== 'connected' && callStatus !== 'ended' && !callEndedRef.current) {
+        notifyCallEnd('reject').catch(err => console.error('[CALL] Error notifying on close:', err));
+      }
       cleanup();
+      callEndedRef.current = false; // Reset when modal closes
       return;
     }
 
     // Reset error when modal opens
     setErrorMessage(null);
+    callEndedRef.current = false; // Reset when modal opens
 
     if (!isIncoming && callStatus === 'connecting') {
       // Initiating call
@@ -199,7 +244,7 @@ export default function CallModal({
         cleanup();
       }
     };
-  }, [isOpen, isIncoming, callStatus, startCall]);
+  }, [isOpen, isIncoming, callStatus, startCall, notifyCallEnd]);
 
   const pollForAnswer = async (pc: RTCPeerConnection) => {
     const maxAttempts = 30;
@@ -208,6 +253,7 @@ export default function CallModal({
     const poll = async () => {
       if (attempts >= maxAttempts) {
         alert('Звонок не был принят');
+        await notifyCallEnd('reject');
         onReject();
         return;
       }
@@ -401,9 +447,16 @@ export default function CallModal({
     setErrorMessage(null);
   };
 
-  const handleEnd = () => {
+  const handleEnd = async () => {
     cleanup();
+    await notifyCallEnd('end-call');
     onEnd();
+  };
+
+  const handleReject = async () => {
+    cleanup();
+    await notifyCallEnd('reject');
+    onReject();
   };
 
   if (!isOpen) return null;
@@ -461,9 +514,10 @@ export default function CallModal({
                 <p className="text-sm text-neutral-300 mb-6 leading-relaxed">{errorMessage}</p>
                 <div className="flex gap-3 justify-center">
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setErrorMessage(null);
                       setCallStatus('connecting');
+                      await notifyCallEnd('reject');
                       onReject();
                     }}
                     className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition font-medium"
@@ -519,7 +573,7 @@ export default function CallModal({
                 <Phone className="h-8 w-8 text-white" />
               </button>
               <button
-                onClick={onReject}
+                onClick={handleReject}
                 className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition"
               >
                 <PhoneOff className="h-8 w-8 text-white" />

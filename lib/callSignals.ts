@@ -22,3 +22,8 @@ export function getCallKey(fromUserId: string, toUserId: string): string {
   return `${fromUserId}-${toUserId}`;
 }
 
+export function removeCallSignal(fromUserId: string, toUserId: string): void {
+  const callKey = getCallKey(fromUserId, toUserId);
+  callSignals.delete(callKey);
+}
+

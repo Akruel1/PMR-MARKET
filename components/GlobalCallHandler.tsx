@@ -67,13 +67,48 @@ export default function GlobalCallHandler() {
     setIsIncomingCall(false);
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
+    if (incomingCall && session?.user?.id) {
+      // Notify server that call was rejected
+      // For incoming calls, we send as the receiver (toUserId is the caller)
+      try {
+        await fetch('/api/calls/signal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'reject',
+            fromUserId: session.user.id, // Current user rejecting
+            toUserId: incomingCall.fromUserId, // The caller
+          }),
+        });
+        console.log('[CALL] Notified server about call rejection');
+      } catch (error) {
+        console.error('[CALL] Error notifying call rejection:', error);
+      }
+    }
     setIsCallModalOpen(false);
     setIsIncomingCall(false);
     setIncomingCall(null);
   };
 
-  const handleEnd = () => {
+  const handleEnd = async () => {
+    if (incomingCall && session?.user?.id) {
+      // Notify server that call has ended
+      try {
+        await fetch('/api/calls/signal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'end-call',
+            fromUserId: session.user.id, // Current user ending call
+            toUserId: incomingCall.fromUserId, // The caller
+          }),
+        });
+        console.log('[CALL] Notified server about call end');
+      } catch (error) {
+        console.error('[CALL] Error notifying call end:', error);
+      }
+    }
     setIsCallModalOpen(false);
     setIsIncomingCall(false);
     setIncomingCall(null);
