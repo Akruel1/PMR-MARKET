@@ -48,7 +48,7 @@ export default function CallModal({
       { urls: 'stun:stun2.l.google.com:19302' },
       { urls: 'stun:stun3.l.google.com:19302' },
       { urls: 'stun:stun4.l.google.com:19302' },
-      // Free TURN servers (may have rate limits)
+      // Free TURN servers - multiple options for reliability
       { 
         urls: 'turn:openrelay.metered.ca:80',
         username: 'openrelayproject',
@@ -61,6 +61,22 @@ export default function CallModal({
       },
       { 
         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      // Additional free TURN servers
+      {
+        urls: 'turn:relay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:relay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:relay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject'
       },
@@ -203,14 +219,23 @@ export default function CallModal({
       pc.onconnectionstatechange = () => {
         console.log('[CALL] Connection state:', pc.connectionState);
         if (pc.connectionState === 'failed') {
-          console.error('[CALL] Connection failed - may need TURN server');
+          console.error('[CALL] ❌ Connection failed - may need TURN server or check network settings');
+          setErrorMessage('Не удалось установить соединение. Проверьте настройки сети или попробуйте позже.');
+          setCallStatus('ended');
+        } else if (pc.connectionState === 'connected') {
+          console.log('[CALL] ✅ Connection established!');
         }
       };
       
       pc.oniceconnectionstatechange = () => {
         console.log('[CALL] ICE connection state:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed') {
-          console.error('[CALL] ICE connection failed - may need TURN server');
+          console.error('[CALL] ❌ ICE connection failed - may need TURN server');
+          // Try to restart ICE
+          console.log('[CALL] Attempting ICE restart...');
+          pc.restartIce().catch(err => {
+            console.error('[CALL] Error restarting ICE:', err);
+          });
         } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
           console.log('[CALL] ✅ ICE connection established! Audio should work now.');
           // When ICE is connected, ensure audio is playing
@@ -221,6 +246,8 @@ export default function CallModal({
               });
             }
           }, 100);
+        } else if (pc.iceConnectionState === 'disconnected') {
+          console.warn('[CALL] ⚠️ ICE connection disconnected - may reconnect');
         }
       };
       
@@ -521,14 +548,23 @@ export default function CallModal({
       pc.onconnectionstatechange = () => {
         console.log('[CALL] Connection state:', pc.connectionState);
         if (pc.connectionState === 'failed') {
-          console.error('[CALL] Connection failed - may need TURN server');
+          console.error('[CALL] ❌ Connection failed - may need TURN server or check network settings');
+          setErrorMessage('Не удалось установить соединение. Проверьте настройки сети или попробуйте позже.');
+          setCallStatus('ended');
+        } else if (pc.connectionState === 'connected') {
+          console.log('[CALL] ✅ Connection established!');
         }
       };
       
       pc.oniceconnectionstatechange = () => {
         console.log('[CALL] ICE connection state:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed') {
-          console.error('[CALL] ICE connection failed - may need TURN server');
+          console.error('[CALL] ❌ ICE connection failed - may need TURN server');
+          // Try to restart ICE
+          console.log('[CALL] Attempting ICE restart...');
+          pc.restartIce().catch(err => {
+            console.error('[CALL] Error restarting ICE:', err);
+          });
         } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
           console.log('[CALL] ✅ ICE connection established! Audio should work now.');
           // When ICE is connected, ensure audio is playing
@@ -539,6 +575,8 @@ export default function CallModal({
               });
             }
           }, 100);
+        } else if (pc.iceConnectionState === 'disconnected') {
+          console.warn('[CALL] ⚠️ ICE connection disconnected - may reconnect');
         }
       };
       
