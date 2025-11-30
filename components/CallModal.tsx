@@ -160,28 +160,51 @@ export default function CallModal({
         pc.addTrack(track, stream);
       });
 
-      // Handle remote stream
+      // Handle remote stream - collect all tracks into one stream
+      let remoteStream: MediaStream | null = null;
       pc.ontrack = (event) => {
         console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled, event.streams);
-        const stream = event.streams[0];
         
-        if (event.track.kind === 'audio') {
-          console.log('[CALL] Audio track received, setting up audio element');
-          // Use separate audio element for audio tracks
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = stream;
-            remoteAudioRef.current.muted = false;
-            remoteAudioRef.current.volume = 1.0;
-            remoteAudioRef.current.play().catch(err => {
-              console.error('[CALL] Error playing remote audio:', err);
-            });
-          }
-          // Also ensure track is enabled
-          event.track.enabled = true;
+        // Create or reuse remote stream
+        if (!remoteStream) {
+          remoteStream = new MediaStream();
+          console.log('[CALL] Created new remote stream');
         }
         
-        if (event.track.kind === 'video' && remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
+        // Add track to the combined stream
+        remoteStream.addTrack(event.track);
+        console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
+        
+        // Ensure track is enabled
+        event.track.enabled = true;
+        
+        // Set up audio element when we have audio track
+        if (event.track.kind === 'audio' && remoteAudioRef.current && remoteStream) {
+          console.log('[CALL] Setting up audio element with combined stream');
+          remoteAudioRef.current.srcObject = remoteStream;
+          remoteAudioRef.current.muted = false;
+          remoteAudioRef.current.volume = 1.0;
+          
+          // Try to play immediately and after delays
+          const tryPlay = () => {
+            if (remoteAudioRef.current) {
+              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState);
+              remoteAudioRef.current.play().then(() => {
+                console.log('[CALL] Audio playing successfully');
+              }).catch(err => {
+                console.error('[CALL] Error playing remote audio:', err);
+              });
+            }
+          };
+          
+          tryPlay();
+          setTimeout(tryPlay, 100);
+          setTimeout(tryPlay, 500);
+        }
+        
+        // Set up video element when we have video track
+        if (event.track.kind === 'video' && remoteVideoRef.current && remoteStream) {
+          remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.muted = false;
         }
         
@@ -335,28 +358,51 @@ export default function CallModal({
         pc.addTrack(track, stream);
       });
 
-      // Handle remote stream
+      // Handle remote stream - collect all tracks into one stream
+      let remoteStream: MediaStream | null = null;
       pc.ontrack = (event) => {
         console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled, event.streams);
-        const stream = event.streams[0];
         
-        if (event.track.kind === 'audio') {
-          console.log('[CALL] Audio track received, setting up audio element');
-          // Use separate audio element for audio tracks
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = stream;
-            remoteAudioRef.current.muted = false;
-            remoteAudioRef.current.volume = 1.0;
-            remoteAudioRef.current.play().catch(err => {
-              console.error('[CALL] Error playing remote audio:', err);
-            });
-          }
-          // Also ensure track is enabled
-          event.track.enabled = true;
+        // Create or reuse remote stream
+        if (!remoteStream) {
+          remoteStream = new MediaStream();
+          console.log('[CALL] Created new remote stream');
         }
         
-        if (event.track.kind === 'video' && remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
+        // Add track to the combined stream
+        remoteStream.addTrack(event.track);
+        console.log('[CALL] Added track to remote stream, total tracks:', remoteStream.getTracks().length);
+        
+        // Ensure track is enabled
+        event.track.enabled = true;
+        
+        // Set up audio element when we have audio track
+        if (event.track.kind === 'audio' && remoteAudioRef.current && remoteStream) {
+          console.log('[CALL] Setting up audio element with combined stream');
+          remoteAudioRef.current.srcObject = remoteStream;
+          remoteAudioRef.current.muted = false;
+          remoteAudioRef.current.volume = 1.0;
+          
+          // Try to play immediately and after delays
+          const tryPlay = () => {
+            if (remoteAudioRef.current) {
+              console.log('[CALL] Attempting to play audio, muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume, 'readyState:', remoteAudioRef.current.readyState);
+              remoteAudioRef.current.play().then(() => {
+                console.log('[CALL] Audio playing successfully');
+              }).catch(err => {
+                console.error('[CALL] Error playing remote audio:', err);
+              });
+            }
+          };
+          
+          tryPlay();
+          setTimeout(tryPlay, 100);
+          setTimeout(tryPlay, 500);
+        }
+        
+        // Set up video element when we have video track
+        if (event.track.kind === 'video' && remoteVideoRef.current && remoteStream) {
+          remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.muted = false;
         }
         
@@ -515,15 +561,36 @@ export default function CallModal({
           autoPlay
           playsInline
           muted={false}
-          style={{ display: 'none' }}
+          style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
           onLoadedMetadata={() => {
+            console.log('[CALL] Audio metadata loaded');
             if (remoteAudioRef.current) {
               remoteAudioRef.current.muted = false;
               remoteAudioRef.current.volume = 1.0;
-              remoteAudioRef.current.play().catch(err => {
+              console.log('[CALL] Audio element state - muted:', remoteAudioRef.current.muted, 'volume:', remoteAudioRef.current.volume);
+              remoteAudioRef.current.play().then(() => {
+                console.log('[CALL] Audio started playing from onLoadedMetadata');
+              }).catch(err => {
                 console.error('[CALL] Error playing audio on load:', err);
               });
             }
+          }}
+          onCanPlay={() => {
+            console.log('[CALL] Audio can play');
+            if (remoteAudioRef.current) {
+              remoteAudioRef.current.play().catch(err => {
+                console.error('[CALL] Error playing audio on canPlay:', err);
+              });
+            }
+          }}
+          onPlay={() => {
+            console.log('[CALL] Audio is playing');
+          }}
+          onPause={() => {
+            console.log('[CALL] Audio paused');
+          }}
+          onError={(e) => {
+            console.error('[CALL] Audio element error:', e);
           }}
         />
         {/* Remote Video */}
