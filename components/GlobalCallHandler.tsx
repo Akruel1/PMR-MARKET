@@ -41,13 +41,14 @@ export default function GlobalCallHandler() {
             setIsCallModalOpen(true);
 
             // Play notification sound (optional)
-            try {
-              const audio = new Audio('/sounds/incoming-call.mp3');
-              audio.volume = 0.5;
-              // audio.play().catch(() => {}); // Uncomment if you have a sound file
-            } catch (error) {
-              // Silent fail if sound file doesn't exist
-            }
+            // Uncomment and add sound file to /public/sounds/incoming-call.mp3 if you want sound notifications
+            // try {
+            //   const audio = new Audio('/sounds/incoming-call.mp3');
+            //   audio.volume = 0.5;
+            //   audio.play().catch(() => {});
+            // } catch (error) {
+            //   // Silent fail if sound file doesn't exist
+            // }
           }
         } else if (calls.length === 0) {
           lastCheckedCallId = null;
