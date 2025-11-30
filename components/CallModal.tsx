@@ -155,8 +155,11 @@ export default function CallModal({
       const pc = new RTCPeerConnection(iceServers);
       peerConnectionRef.current = pc;
 
-      // Add local stream tracks
+      // Add local stream tracks and ensure they're not muted
       stream.getTracks().forEach((track) => {
+        console.log('[CALL] Adding local track:', track.kind, 'enabled:', track.enabled, 'muted:', track.muted);
+        // Ensure track is enabled
+        track.enabled = true;
         pc.addTrack(track, stream);
       });
 
@@ -185,13 +188,20 @@ export default function CallModal({
         
         // Ensure track is enabled and log track details
         event.track.enabled = true;
-        console.log('[CALL] Track details:', {
+        const trackDetails = {
           id: event.track.id,
           label: event.track.label,
           readyState: event.track.readyState,
           muted: event.track.muted,
           settings: event.track.getSettings ? event.track.getSettings() : 'N/A'
-        });
+        };
+        console.log('[CALL] Track details:', trackDetails);
+        
+        // Warn if track is muted - this is the likely cause of no sound
+        if (event.track.muted) {
+          console.warn('[CALL] ⚠️ REMOTE TRACK IS MUTED! This is why there is no sound.');
+          console.warn('[CALL] The remote user may have muted their microphone, or there is an issue with the track transmission.');
+        }
         
         // Set up audio element when we have audio track
         if (event.track.kind === 'audio' && remoteAudioRef.current && remoteStream) {
@@ -392,8 +402,11 @@ export default function CallModal({
       const pc = new RTCPeerConnection(iceServers);
       peerConnectionRef.current = pc;
 
-      // Add local stream tracks
+      // Add local stream tracks and ensure they're not muted
       stream.getTracks().forEach((track) => {
+        console.log('[CALL] Adding local track:', track.kind, 'enabled:', track.enabled, 'muted:', track.muted);
+        // Ensure track is enabled
+        track.enabled = true;
         pc.addTrack(track, stream);
       });
 
@@ -422,13 +435,20 @@ export default function CallModal({
         
         // Ensure track is enabled and log track details
         event.track.enabled = true;
-        console.log('[CALL] Track details:', {
+        const trackDetails = {
           id: event.track.id,
           label: event.track.label,
           readyState: event.track.readyState,
           muted: event.track.muted,
           settings: event.track.getSettings ? event.track.getSettings() : 'N/A'
-        });
+        };
+        console.log('[CALL] Track details:', trackDetails);
+        
+        // Warn if track is muted - this is the likely cause of no sound
+        if (event.track.muted) {
+          console.warn('[CALL] ⚠️ REMOTE TRACK IS MUTED! This is why there is no sound.');
+          console.warn('[CALL] The remote user may have muted their microphone, or there is an issue with the track transmission.');
+        }
         
         // Set up audio element when we have audio track
         if (event.track.kind === 'audio' && remoteAudioRef.current && remoteStream) {
