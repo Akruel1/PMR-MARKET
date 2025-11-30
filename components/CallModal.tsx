@@ -46,6 +46,17 @@ export default function CallModal({
 
   const startCall = useCallback(async () => {
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('MediaDevicesNotSupported');
+      }
+
+      // Check if we're on HTTPS or localhost (required for WebRTC)
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isSecure) {
+        throw new Error('HTTPSRequired');
+      }
+
       // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -112,7 +123,11 @@ export default function CallModal({
       console.error('Error starting call:', error);
       let errorMsg = 'Не удалось начать звонок.';
       
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      if (error.message === 'MediaDevicesNotSupported') {
+        errorMsg = 'Ваш браузер не поддерживает доступ к камере и микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge).';
+      } else if (error.message === 'HTTPSRequired') {
+        errorMsg = 'Для работы звонков требуется безопасное соединение (HTTPS). Пожалуйста, используйте HTTPS для доступа к сайту.';
+      } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         errorMsg = 'Доступ к камере и микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера или обратитесь к системному администратору.';
       } else if (error.name === 'NotFoundError') {
         errorMsg = 'Камера или микрофон не найдены. Убедитесь, что устройства подключены.';
@@ -185,6 +200,17 @@ export default function CallModal({
 
   const handleAccept = async () => {
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('MediaDevicesNotSupported');
+      }
+
+      // Check if we're on HTTPS or localhost (required for WebRTC)
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isSecure) {
+        throw new Error('HTTPSRequired');
+      }
+
       // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -262,7 +288,11 @@ export default function CallModal({
       console.error('Error accepting call:', error);
       let errorMsg = 'Не удалось принять звонок.';
       
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      if (error.message === 'MediaDevicesNotSupported') {
+        errorMsg = 'Ваш браузер не поддерживает доступ к камере и микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge).';
+      } else if (error.message === 'HTTPSRequired') {
+        errorMsg = 'Для работы звонков требуется безопасное соединение (HTTPS). Пожалуйста, используйте HTTPS для доступа к сайту.';
+      } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         errorMsg = 'Доступ к камере и микрофону запрещён. Пожалуйста, разрешите доступ в настройках браузера или обратитесь к системному администратору.';
       } else if (error.name === 'NotFoundError') {
         errorMsg = 'Камера или микрофон не найдены. Убедитесь, что устройства подключены.';

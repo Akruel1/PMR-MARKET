@@ -28,7 +28,9 @@ export async function GET(request: NextRequest) {
       if (toUserId === userId && signal.offer && !signal.answer) {
         // This is an incoming call that hasn't been answered yet
         // Check if it's recent (within last 30 seconds)
-        if (Date.now() - signal.timestamp < 30000) {
+        const callAge = Date.now() - signal.timestamp;
+        console.log(`[CALL] Checking incoming call from ${fromUserId} to ${toUserId}, age: ${callAge}ms`);
+        if (callAge < 30000) {
           // Get user info
           try {
             const user = await prisma.user.findUnique({

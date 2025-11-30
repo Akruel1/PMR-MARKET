@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     const callKey = getCallKey(fromUserId, toUserId);
 
     if (type === 'offer') {
+      console.log(`[CALL] Offer received from ${fromUserId} to ${toUserId}`);
       callSignals.set(callKey, {
         offer: offer,
         iceCandidates: [],
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === 'answer') {
+      console.log(`[CALL] Answer received from ${fromUserId} to ${toUserId}`);
       const existing = callSignals.get(callKey);
       if (existing) {
         existing.answer = answer;
