@@ -211,6 +211,16 @@ export default function CallModal({
         console.log('[CALL] ICE connection state:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed') {
           console.error('[CALL] ICE connection failed - may need TURN server');
+        } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          console.log('[CALL] ✅ ICE connection established! Audio should work now.');
+          // When ICE is connected, ensure audio is playing
+          setTimeout(() => {
+            if (remoteAudioRef.current && remoteAudioRef.current.paused) {
+              remoteAudioRef.current.play().catch(err => {
+                console.error('[CALL] Error playing after ICE connection:', err);
+              });
+            }
+          }, 100);
         }
       };
       
@@ -266,6 +276,18 @@ export default function CallModal({
         };
         event.track.onunmute = () => {
           console.log('[CALL] Remote track was unmuted', event.track.kind, event.track.id);
+          // When track is unmuted, try to play audio again
+          if (event.track.kind === 'audio' && remoteAudioRef.current && peerConnectionRef.current) {
+            const pc = peerConnectionRef.current;
+            console.log('[CALL] Track unmuted, ICE state:', pc.iceConnectionState, 'Connection state:', pc.connectionState);
+            setTimeout(() => {
+              if (remoteAudioRef.current && !remoteAudioRef.current.paused) {
+                remoteAudioRef.current.play().catch(err => {
+                  console.error('[CALL] Error playing after unmute:', err);
+                });
+              }
+            }, 100);
+          }
         };
         
         // Warn if track is muted - this is the likely cause of no sound
@@ -493,6 +515,16 @@ export default function CallModal({
         console.log('[CALL] ICE connection state:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed') {
           console.error('[CALL] ICE connection failed - may need TURN server');
+        } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          console.log('[CALL] ✅ ICE connection established! Audio should work now.');
+          // When ICE is connected, ensure audio is playing
+          setTimeout(() => {
+            if (remoteAudioRef.current && remoteAudioRef.current.paused) {
+              remoteAudioRef.current.play().catch(err => {
+                console.error('[CALL] Error playing after ICE connection:', err);
+              });
+            }
+          }, 100);
         }
       };
       
@@ -548,6 +580,18 @@ export default function CallModal({
         };
         event.track.onunmute = () => {
           console.log('[CALL] Remote track was unmuted', event.track.kind, event.track.id);
+          // When track is unmuted, try to play audio again
+          if (event.track.kind === 'audio' && remoteAudioRef.current && peerConnectionRef.current) {
+            const pc = peerConnectionRef.current;
+            console.log('[CALL] Track unmuted, ICE state:', pc.iceConnectionState, 'Connection state:', pc.connectionState);
+            setTimeout(() => {
+              if (remoteAudioRef.current && !remoteAudioRef.current.paused) {
+                remoteAudioRef.current.play().catch(err => {
+                  console.error('[CALL] Error playing after unmute:', err);
+                });
+              }
+            }, 100);
+          }
         };
         
         // Warn if track is muted - this is the likely cause of no sound
