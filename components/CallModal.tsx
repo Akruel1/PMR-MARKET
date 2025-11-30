@@ -38,12 +38,34 @@ export default function CallModal({
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
-  // STUN servers for WebRTC
+  // STUN and TURN servers for WebRTC
+  // TURN servers are needed for NAT traversal when direct connection fails
   const iceServers = {
     iceServers: [
+      // Google STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      // Free TURN servers (may have rate limits)
+      { 
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      { 
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      { 
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
     ],
+    iceCandidatePoolSize: 10, // Pre-gather ICE candidates
   };
 
   const notifyCallEnd = useCallback(async (type: 'end-call' | 'reject' = 'end-call') => {
@@ -88,7 +110,29 @@ export default function CallModal({
         const data = await response.json();
 
         if (data.answer) {
+          console.log('[CALL] Answer received, setting remote description');
           await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          
+          // Also fetch and add any pending ICE candidates
+          try {
+            const iceResponse = await fetch(
+              `/api/calls/signal?fromUserId=${otherUserId}&toUserId=${currentUserId}&type=ice-candidates`
+            );
+            const iceData = await iceResponse.json();
+            if (iceData.candidates && Array.isArray(iceData.candidates)) {
+              console.log('[CALL] Adding', iceData.candidates.length, 'ICE candidates');
+              for (const candidate of iceData.candidates) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (err) {
+                  console.warn('[CALL] Error adding ICE candidate:', err);
+                }
+              }
+            }
+          } catch (iceError) {
+            console.warn('[CALL] Error fetching ICE candidates:', iceError);
+          }
+          
           setCallStatus('connected');
         } else {
           attempts++;
@@ -151,9 +195,28 @@ export default function CallModal({
         localVideoRef.current.srcObject = stream;
       }
 
-      // Create peer connection
+      // Create peer connection with improved configuration
       const pc = new RTCPeerConnection(iceServers);
       peerConnectionRef.current = pc;
+      
+      // Set connection state handlers
+      pc.onconnectionstatechange = () => {
+        console.log('[CALL] Connection state:', pc.connectionState);
+        if (pc.connectionState === 'failed') {
+          console.error('[CALL] Connection failed - may need TURN server');
+        }
+      };
+      
+      pc.oniceconnectionstatechange = () => {
+        console.log('[CALL] ICE connection state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed') {
+          console.error('[CALL] ICE connection failed - may need TURN server');
+        }
+      };
+      
+      pc.onicegatheringstatechange = () => {
+        console.log('[CALL] ICE gathering state:', pc.iceGatheringState);
+      };
 
       // Add local stream tracks and ensure they're not muted
       stream.getTracks().forEach((track) => {
@@ -295,16 +358,23 @@ export default function CallModal({
       // Handle ICE candidates
       pc.onicecandidate = async (event) => {
         if (event.candidate) {
-          await fetch('/api/calls/signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'ice-candidate',
-              candidate: event.candidate,
-              fromUserId: currentUserId,
-              toUserId: otherUserId,
-            }),
-          });
+          console.log('[CALL] ICE candidate:', event.candidate.type, event.candidate.candidate.substring(0, 50));
+          try {
+            await fetch('/api/calls/signal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'ice-candidate',
+                candidate: event.candidate,
+                fromUserId: currentUserId,
+                toUserId: otherUserId,
+              }),
+            });
+          } catch (error) {
+            console.error('[CALL] Error sending ICE candidate:', error);
+          }
+        } else {
+          console.log('[CALL] ICE candidate gathering complete');
         }
       };
 
@@ -407,9 +477,28 @@ export default function CallModal({
         localVideoRef.current.srcObject = stream;
       }
 
-      // Create peer connection
+      // Create peer connection with improved configuration
       const pc = new RTCPeerConnection(iceServers);
       peerConnectionRef.current = pc;
+      
+      // Set connection state handlers
+      pc.onconnectionstatechange = () => {
+        console.log('[CALL] Connection state:', pc.connectionState);
+        if (pc.connectionState === 'failed') {
+          console.error('[CALL] Connection failed - may need TURN server');
+        }
+      };
+      
+      pc.oniceconnectionstatechange = () => {
+        console.log('[CALL] ICE connection state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed') {
+          console.error('[CALL] ICE connection failed - may need TURN server');
+        }
+      };
+      
+      pc.onicegatheringstatechange = () => {
+        console.log('[CALL] ICE gathering state:', pc.iceGatheringState);
+      };
 
       // Add local stream tracks and ensure they're not muted
       stream.getTracks().forEach((track) => {
@@ -532,11 +621,36 @@ export default function CallModal({
       const data = await response.json();
 
       if (data.offer) {
+        console.log('[CALL] Offer received, setting remote description');
         await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        
+        // Also fetch and add any pending ICE candidates
+        try {
+          const iceResponse = await fetch(
+            `/api/calls/signal?fromUserId=${otherUserId}&toUserId=${currentUserId}&type=ice-candidates`
+          );
+          const iceData = await iceResponse.json();
+          if (iceData.candidates && Array.isArray(iceData.candidates)) {
+            console.log('[CALL] Adding', iceData.candidates.length, 'ICE candidates');
+            for (const candidate of iceData.candidates) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              } catch (err) {
+                console.warn('[CALL] Error adding ICE candidate:', err);
+              }
+            }
+          }
+        } catch (iceError) {
+          console.warn('[CALL] Error fetching ICE candidates:', iceError);
+        }
 
-        // Create answer
-        const answer = await pc.createAnswer();
+        console.log('[CALL] Creating answer...');
+        const answer = await pc.createAnswer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: isVideoEnabled,
+        });
         await pc.setLocalDescription(answer);
+        console.log('[CALL] Answer created, SDP:', answer.sdp?.substring(0, 200));
 
         // Send answer
         await fetch('/api/calls/signal', {
@@ -554,16 +668,23 @@ export default function CallModal({
       // Handle ICE candidates
       pc.onicecandidate = async (event) => {
         if (event.candidate) {
-          await fetch('/api/calls/signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'ice-candidate',
-              candidate: event.candidate,
-              fromUserId: currentUserId,
-              toUserId: otherUserId,
-            }),
-          });
+          console.log('[CALL] ICE candidate:', event.candidate.type, event.candidate.candidate.substring(0, 50));
+          try {
+            await fetch('/api/calls/signal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'ice-candidate',
+                candidate: event.candidate,
+                fromUserId: currentUserId,
+                toUserId: otherUserId,
+              }),
+            });
+          } catch (error) {
+            console.error('[CALL] Error sending ICE candidate:', error);
+          }
+        } else {
+          console.log('[CALL] ICE candidate gathering complete');
         }
       };
 
