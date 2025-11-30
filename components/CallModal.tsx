@@ -34,6 +34,7 @@ export default function CallModal({
   const callEndedRef = useRef(false); // Track if call end was already notified
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
@@ -161,16 +162,29 @@ export default function CallModal({
 
       // Handle remote stream
       pc.ontrack = (event) => {
-        console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-          // Ensure audio is not muted
-          remoteVideoRef.current.muted = false;
-          // Ensure video element plays audio
-          if (event.track.kind === 'audio') {
-            event.track.enabled = true;
+        console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled, event.streams);
+        const stream = event.streams[0];
+        
+        if (event.track.kind === 'audio') {
+          console.log('[CALL] Audio track received, setting up audio element');
+          // Use separate audio element for audio tracks
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = stream;
+            remoteAudioRef.current.muted = false;
+            remoteAudioRef.current.volume = 1.0;
+            remoteAudioRef.current.play().catch(err => {
+              console.error('[CALL] Error playing remote audio:', err);
+            });
           }
+          // Also ensure track is enabled
+          event.track.enabled = true;
         }
+        
+        if (event.track.kind === 'video' && remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.muted = false;
+        }
+        
         setCallStatus('connected');
       };
 
@@ -323,16 +337,29 @@ export default function CallModal({
 
       // Handle remote stream
       pc.ontrack = (event) => {
-        console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-          // Ensure audio is not muted
-          remoteVideoRef.current.muted = false;
-          // Ensure video element plays audio
-          if (event.track.kind === 'audio') {
-            event.track.enabled = true;
+        console.log('[CALL] Remote track received:', event.track.kind, event.track.enabled, event.streams);
+        const stream = event.streams[0];
+        
+        if (event.track.kind === 'audio') {
+          console.log('[CALL] Audio track received, setting up audio element');
+          // Use separate audio element for audio tracks
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = stream;
+            remoteAudioRef.current.muted = false;
+            remoteAudioRef.current.volume = 1.0;
+            remoteAudioRef.current.play().catch(err => {
+              console.error('[CALL] Error playing remote audio:', err);
+            });
           }
+          // Also ensure track is enabled
+          event.track.enabled = true;
         }
+        
+        if (event.track.kind === 'video' && remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.muted = false;
+        }
+        
         setCallStatus('connected');
       };
 
@@ -456,6 +483,9 @@ export default function CallModal({
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
     }
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = null;
+    }
     setIsMuted(false);
     setIsVideoEnabled(false);
     setCallStatus('connecting');
@@ -479,6 +509,23 @@ export default function CallModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       <div className="relative w-full h-full max-w-4xl max-h-screen flex flex-col">
+        {/* Hidden audio element for remote audio */}
+        <audio
+          ref={remoteAudioRef}
+          autoPlay
+          playsInline
+          muted={false}
+          style={{ display: 'none' }}
+          onLoadedMetadata={() => {
+            if (remoteAudioRef.current) {
+              remoteAudioRef.current.muted = false;
+              remoteAudioRef.current.volume = 1.0;
+              remoteAudioRef.current.play().catch(err => {
+                console.error('[CALL] Error playing audio on load:', err);
+              });
+            }
+          }}
+        />
         {/* Remote Video */}
         <div className="flex-1 relative bg-neutral-900 rounded-t-2xl overflow-hidden">
           {remoteVideoRef.current?.srcObject ? (
