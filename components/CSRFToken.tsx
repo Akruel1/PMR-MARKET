@@ -9,6 +9,8 @@ export default function CSRFToken() {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
     // Получаем CSRF токен из cookie
     const getCSRFToken = () => {
       const cookies = document.cookie.split(';');
@@ -55,7 +57,9 @@ export default function CSRFToken() {
 
     // Восстанавливаем оригинальный fetch при размонтировании
     return () => {
-      window.fetch = originalFetch;
+      if (typeof window !== 'undefined') {
+        window.fetch = originalFetch;
+      }
     };
   }, []);
 
@@ -70,6 +74,8 @@ export function useCSRFToken(): string | null {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    
     const getToken = () => {
       const cookies = document.cookie.split(';');
       const csrfCookie = cookies.find(cookie => 

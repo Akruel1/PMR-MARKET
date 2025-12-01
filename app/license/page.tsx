@@ -23,8 +23,10 @@ export default function LicensePage() {
     if (!accepted || !scrolledToBottom) return;
 
     // Mark license as accepted (will be saved after Google OAuth)
-    localStorage.setItem('licenseAccepted', 'true');
-    localStorage.setItem('licenseAcceptedAt', new Date().toISOString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('licenseAccepted', 'true');
+      localStorage.setItem('licenseAcceptedAt', new Date().toISOString());
+    }
 
     // Redirect to Google OAuth
     signIn('google', { 

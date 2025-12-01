@@ -17,12 +17,15 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('ru');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const saved = localStorage.getItem('locale') as Locale | null;
     if (saved) {
       setLocaleState(saved);
     }
 
     const handleLocaleChange = () => {
+      if (typeof window === 'undefined') return;
       const newLocale = localStorage.getItem('locale') as Locale | null;
       if (newLocale) {
         setLocaleState(newLocale);
@@ -35,8 +38,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem('locale', newLocale);
-    window.dispatchEvent(new Event('localechange'));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locale', newLocale);
+      window.dispatchEvent(new Event('localechange'));
+    }
   };
 
   return (
@@ -49,6 +54,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 export function useLocale() {
   return useContext(LocaleContext);
 }
+
+
+
+
 
 
 

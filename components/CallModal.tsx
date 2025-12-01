@@ -16,31 +16,9 @@ interface CallModalProps {
   currentUserId: string;
 }
 
-export default function CallModal({
-  isOpen,
-  isIncoming,
-  callerName,
-  callerImage,
-  onAccept,
-  onReject,
-  onEnd,
-  otherUserId,
-  currentUserId,
-}: CallModalProps) {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-  const [callStatus, setCallStatus] = useState<'connecting' | 'connected' | 'ended'>('connecting');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const callEndedRef = useRef(false); // Track if call end was already notified
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteAudioRef = useRef<HTMLAudioElement>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-
-  // STUN and TURN servers for WebRTC
-  // TURN servers are needed for NAT traversal when direct connection fails
-  const iceServers = {
+// STUN and TURN servers for WebRTC
+// TURN servers are needed for NAT traversal when direct connection fails
+const iceServers = {
     iceServers: [
       // Google STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
@@ -80,9 +58,31 @@ export default function CallModal({
         username: 'openrelayproject',
         credential: 'openrelayproject'
       },
-    ],
-    iceCandidatePoolSize: 10, // Pre-gather ICE candidates
-  };
+  ],
+  iceCandidatePoolSize: 10, // Pre-gather ICE candidates
+};
+
+export default function CallModal({
+  isOpen,
+  isIncoming,
+  callerName,
+  callerImage,
+  onAccept,
+  onReject,
+  onEnd,
+  otherUserId,
+  currentUserId,
+}: CallModalProps) {
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [callStatus, setCallStatus] = useState<'connecting' | 'connected' | 'ended'>('connecting');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const callEndedRef = useRef(false); // Track if call end was already notified
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
   const notifyCallEnd = useCallback(async (type: 'end-call' | 'reject' = 'end-call') => {
     if (callEndedRef.current) {
@@ -233,9 +233,17 @@ export default function CallModal({
           console.error('[CALL] ❌ ICE connection failed - may need TURN server');
           // Try to restart ICE
           console.log('[CALL] Attempting ICE restart...');
-          pc.restartIce().catch(err => {
+          try {
+            // restartIce() returns Promise<void> but TypeScript types may be outdated
+            const restartResult = pc.restartIce() as Promise<void> | void;
+            if (restartResult && typeof restartResult === 'object' && 'catch' in restartResult) {
+              restartResult.catch((err: any) => {
+                console.error('[CALL] Error restarting ICE:', err);
+              });
+            }
+          } catch (err) {
             console.error('[CALL] Error restarting ICE:', err);
-          });
+          }
         } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
           console.log('[CALL] ✅ ICE connection established! Audio should work now.');
           // When ICE is connected, ensure audio is playing
@@ -562,9 +570,17 @@ export default function CallModal({
           console.error('[CALL] ❌ ICE connection failed - may need TURN server');
           // Try to restart ICE
           console.log('[CALL] Attempting ICE restart...');
-          pc.restartIce().catch(err => {
+          try {
+            // restartIce() returns Promise<void> but TypeScript types may be outdated
+            const restartResult = pc.restartIce() as Promise<void> | void;
+            if (restartResult && typeof restartResult === 'object' && 'catch' in restartResult) {
+              restartResult.catch((err: any) => {
+                console.error('[CALL] Error restarting ICE:', err);
+              });
+            }
+          } catch (err) {
             console.error('[CALL] Error restarting ICE:', err);
-          });
+          }
         } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
           console.log('[CALL] ✅ ICE connection established! Audio should work now.');
           // When ICE is connected, ensure audio is playing

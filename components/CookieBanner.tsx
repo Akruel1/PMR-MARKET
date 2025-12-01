@@ -8,6 +8,8 @@ export default function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     // Check if user has already accepted cookies
     const cookieConsent = localStorage.getItem('cookieConsent');
     if (!cookieConsent) {
@@ -17,12 +19,14 @@ export default function CookieBanner() {
   }, []);
 
   const handleAccept = () => {
+    if (typeof window === 'undefined') return;
     localStorage.setItem('cookieConsent', 'accepted');
     localStorage.setItem('cookieConsentDate', new Date().toISOString());
     setShow(false);
   };
 
   const handleDecline = () => {
+    if (typeof window === 'undefined') return;
     localStorage.setItem('cookieConsent', 'declined');
     setShow(false);
   };
@@ -75,6 +79,10 @@ export default function CookieBanner() {
     </div>
   );
 }
+
+
+
+
 
 
 

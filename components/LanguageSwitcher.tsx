@@ -10,6 +10,8 @@ export default function LanguageSwitcher() {
   const [locale, setLocale] = useState<'en' | 'ru'>('ru');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const saved = localStorage.getItem('locale') as 'en' | 'ru' | null;
     if (saved) {
       setLocale(saved);
@@ -18,9 +20,11 @@ export default function LanguageSwitcher() {
 
   const switchLanguage = (newLocale: 'en' | 'ru') => {
     setLocale(newLocale);
-    localStorage.setItem('locale', newLocale);
-    // Trigger a re-render by reloading or using a context
-    window.dispatchEvent(new Event('localechange'));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locale', newLocale);
+      // Trigger a re-render by reloading or using a context
+      window.dispatchEvent(new Event('localechange'));
+    }
   };
 
   return (
